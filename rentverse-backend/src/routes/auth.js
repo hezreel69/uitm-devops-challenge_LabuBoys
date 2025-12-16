@@ -15,6 +15,7 @@ const {
 const { blacklistToken } = require('../services/tokenBlacklist');
 const { securityLogger } = require('../middleware/apiLogger');
 const { auth } = require('../middleware/auth');
+const { requireRecentAuth } = require('../middleware/reauth');
 
 // Smart Notification System imports (Module 3)
 const suspiciousActivityService = require('../services/suspiciousActivity.service');
@@ -1656,6 +1657,7 @@ router.post('/oauth/unlink', async (req, res) => {
  * /api/auth/change-password:
  *   post:
  *     summary: Change user password
+ *     description: Change user password - requires recent authentication (within 15 minutes)
  *     tags: [Authentication]
  *     security:
  *       - bearerAuth: []
@@ -1686,6 +1688,8 @@ router.post('/oauth/unlink', async (req, res) => {
  */
 router.post(
   '/change-password',
+  auth,
+  requireRecentAuth,
   [
     body('currentPassword')
       .notEmpty()
@@ -1706,31 +1710,12 @@ router.post(
         });
       }
 
-      // Get token from header
-      const token = req.headers.authorization?.replace('Bearer ', '');
-      if (!token) {
-        return res.status(401).json({
-          success: false,
-          message: 'No token provided',
-        });
-      }
-
-      // Verify token
-      let decoded;
-      try {
-        decoded = jwt.verify(token, process.env.JWT_SECRET);
-      } catch (err) {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid token',
-        });
-      }
-
+      const userId = req.user.id;
       const { currentPassword, newPassword } = req.body;
 
       // Find user with password
       const user = await prisma.user.findUnique({
-        where: { id: decoded.userId },
+        where: { id: userId },
       });
 
       if (!user) {
@@ -1757,13 +1742,13 @@ router.post(
 
       // Update password in database
       await prisma.user.update({
-        where: { id: decoded.userId },
+        where: { id: userId },
         data: { password: hashedPassword },
       });
 
       // Send password changed notification
-      await securityAlertService.alertPasswordChanged(decoded.userId, req.ip);
-      securityLogger.logPasswordChange(req, decoded.userId);
+      await securityAlertService.alertPasswordChanged(userId, req.ip);
+      securityLogger.logPasswordChange(req, userId);
 
       res.json({
         success: true,

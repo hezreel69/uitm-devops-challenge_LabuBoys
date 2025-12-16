@@ -121,7 +121,6 @@ model LoginHistory {
   city        String?
   success     Boolean       @default(true)
   failReason  String?       // Reason for failed login
-  riskScore   Int           @default(0)  // 0-100 risk score
   loginMethod String?       @default("email") // email, google, facebook, github, twitter, apple
   createdAt   DateTime      @default(now())
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)

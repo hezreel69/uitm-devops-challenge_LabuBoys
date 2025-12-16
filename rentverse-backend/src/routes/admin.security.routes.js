@@ -36,7 +36,6 @@ router.get('/statistics', async (req, res) => {
       totalLogins24h,
       failedLogins24h,
       successfulLogins24h,
-      highRiskLogins24h,
       alertsSent24h,
       newDevices24h,
       uniqueUsers24h,
@@ -51,9 +50,6 @@ router.get('/statistics', async (req, res) => {
       }),
       prisma.loginHistory.count({
         where: { createdAt: { gte: last24h }, success: true },
-      }),
-      prisma.loginHistory.count({
-        where: { createdAt: { gte: last24h }, riskScore: { gte: 50 } },
       }),
       prisma.securityAlert.count({
         where: { createdAt: { gte: last24h } },
@@ -134,7 +130,6 @@ router.get('/statistics', async (req, res) => {
           totalLogins24h,
           failedLogins24h,
           successfulLogins24h,
-          highRiskLogins24h,
           alertsSent24h,
           newDevices24h,
           uniqueUsers24h: uniqueUsers24h.length,
@@ -206,11 +201,6 @@ router.get('/login-history', async (req, res) => {
     // Filter by success status
     if (req.query.success !== undefined) {
       where.success = req.query.success === 'true';
-    }
-
-    // Filter by high risk
-    if (req.query.highRisk === 'true') {
-      where.riskScore = { gte: 50 };
     }
 
     // Get login history with user info
@@ -347,22 +337,8 @@ router.get('/users-at-risk', async (req, res) => {
       },
     });
 
-    const usersWithHighRisk = await prisma.loginHistory.groupBy({
-      by: ['userId'],
-      where: {
-        createdAt: { gte: last24h },
-        riskScore: { gte: 50 },
-      },
-      _count: true,
-    });
-
     // Get unique user IDs
-    const userIds = [
-      ...new Set([
-        ...usersWithFailures.map(u => u.userId),
-        ...usersWithHighRisk.map(u => u.userId),
-      ]),
-    ];
+    const userIds = usersWithFailures.map(u => u.userId);
 
     // Fetch user details
     const users = await prisma.user.findMany({
@@ -382,23 +358,16 @@ router.get('/users-at-risk', async (req, res) => {
     // Enrich with risk data
     const usersAtRisk = users.map(user => {
       const failures = usersWithFailures.find(f => f.userId === user.id);
-      const highRisk = usersWithHighRisk.find(r => r.userId === user.id);
 
       return {
         ...user,
         failedAttempts24h: failures?._count || 0,
-        highRiskLogins24h: highRisk?._count || 0,
         isLocked: user.lockedUntil && user.lockedUntil > new Date(),
       };
     });
 
-    // Sort by risk (failures + high risk logins)
-    usersAtRisk.sort(
-      (a, b) =>
-        b.failedAttempts24h +
-        b.highRiskLogins24h -
-        (a.failedAttempts24h + a.highRiskLogins24h)
-    );
+    // Sort by risk (failures)
+    usersAtRisk.sort((a, b) => b.failedAttempts24h - a.failedAttempts24h);
 
     res.json({
       success: true,

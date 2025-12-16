@@ -3,6 +3,7 @@ const router = express.Router();
 const { prisma } = require('../config/database');
 const digitalAgreementService = require('../services/digitalAgreement.service');
 const { auth } = require('../middleware/auth');
+const { requireRecentAuth } = require('../middleware/reauth');
 
 /**
  * Helper function to find agreement by ID or leaseId
@@ -183,10 +184,10 @@ router.post('/:id/initiate', auth, async (req, res) => {
 
 /**
  * @route POST /api/agreements/:id/sign/landlord
- * @desc Landlord signs the agreement
+ * @desc Landlord signs the agreement - requires recent authentication (within 15 minutes)
  * @access Private (Landlord only)
  */
-router.post('/:id/sign/landlord', auth, async (req, res) => {
+router.post('/:id/sign/landlord', auth, requireRecentAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const { signature, confirmed } = req.body;
@@ -257,10 +258,10 @@ router.post('/:id/sign/landlord', auth, async (req, res) => {
 
 /**
  * @route POST /api/agreements/:id/sign/tenant
- * @desc Tenant signs the agreement
+ * @desc Tenant signs the agreement - requires recent authentication (within 15 minutes)
  * @access Private (Tenant only)
  */
-router.post('/:id/sign/tenant', auth, async (req, res) => {
+router.post('/:id/sign/tenant', auth, requireRecentAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const { signature, confirmed } = req.body;

@@ -11,7 +11,6 @@ interface Statistics {
     totalLogins24h: number
     failedLogins24h: number
     successfulLogins24h: number
-    highRiskLogins24h: number
     lockedAccounts: number
     failureRate: number
 }
@@ -33,7 +32,6 @@ interface LoginEntry {
     os: string
     success: boolean
     failReason: string | null
-    riskScore: number
     createdAt: string
     user: {
         id: string
@@ -112,7 +110,6 @@ export default function ActivityLogsDashboard() {
                     totalLogins24h: statsData.data.summary.totalLogins24h,
                     failedLogins24h: statsData.data.summary.failedLogins24h,
                     successfulLogins24h: statsData.data.summary.successfulLogins24h,
-                    highRiskLogins24h: statsData.data.summary.highRiskLogins24h,
                     lockedAccounts: statsData.data.summary.lockedAccounts,
                     failureRate: statsData.data.summary.failureRate,
                 })
@@ -150,7 +147,6 @@ export default function ActivityLogsDashboard() {
                     totalLogins24h: statsData.data.summary.totalLogins24h,
                     failedLogins24h: statsData.data.summary.failedLogins24h,
                     successfulLogins24h: statsData.data.summary.successfulLogins24h,
-                    highRiskLogins24h: statsData.data.summary.highRiskLogins24h,
                     lockedAccounts: statsData.data.summary.lockedAccounts,
                     failureRate: statsData.data.summary.failureRate,
                 })
@@ -169,18 +165,6 @@ export default function ActivityLogsDashboard() {
 
     const formatDate = (dateStr: string) => {
         return new Date(dateStr).toLocaleString()
-    }
-
-    const getRiskColor = (score: number) => {
-        if (score >= 70) return 'bg-red-500'
-        if (score >= 40) return 'bg-amber-500'
-        return 'bg-emerald-500'
-    }
-
-    const getRiskTextColor = (score: number) => {
-        if (score >= 70) return 'text-red-700'
-        if (score >= 40) return 'text-amber-700'
-        return 'text-emerald-700'
     }
 
     const filteredLogins = showFailedOnly 
@@ -307,19 +291,6 @@ export default function ActivityLogsDashboard() {
                             </div>
                         </div>
 
-                        <div className="bg-gradient-to-br from-amber-500 to-orange-500 p-6 rounded-3xl shadow-xl">
-                            <div className="flex items-center justify-between">
-                                <div className="text-white">
-                                    <p className="text-sm font-medium opacity-90 mb-1">High Risk Logins</p>
-                                    <p className="text-4xl font-bold">{statistics.highRiskLogins24h}</p>
-                                    <p className="text-xs opacity-80 mt-2">Risk score ≥ 50</p>
-                                </div>
-                                <div className="p-4 bg-white/20 backdrop-blur rounded-2xl">
-                                    <AlertTriangle className="w-10 h-10 text-white" />
-                                </div>
-                            </div>
-                        </div>
-
                         <div className="bg-gradient-to-br from-slate-700 to-slate-900 p-6 rounded-3xl shadow-xl">
                             <div className="flex items-center justify-between">
                                 <div className="text-white">
@@ -424,7 +395,6 @@ export default function ActivityLogsDashboard() {
                                     <th className="text-left px-6 py-4 font-semibold text-slate-700">User</th>
                                     <th className="text-left px-6 py-4 font-semibold text-slate-700">Device</th>
                                     <th className="text-center px-6 py-4 font-semibold text-slate-700">Status</th>
-                                    <th className="text-center px-6 py-4 font-semibold text-slate-700">Risk Score</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
@@ -449,16 +419,6 @@ export default function ActivityLogsDashboard() {
                                             {login.failReason && (
                                                 <div className="text-xs text-red-600 mt-1 font-medium">{login.failReason}</div>
                                             )}
-                                        </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <div className="flex flex-col items-center gap-1">
-                                                <span className={`px-4 py-1.5 rounded-xl text-xs font-bold text-white ${getRiskColor(login.riskScore)} shadow-md`}>
-                                                    {login.riskScore}
-                                                </span>
-                                                <span className={`text-xs font-semibold ${getRiskTextColor(login.riskScore)}`}>
-                                                    {login.riskScore >= 70 ? 'High' : login.riskScore >= 40 ? 'Medium' : 'Low'}
-                                                </span>
-                                            </div>
                                         </td>
                                     </tr>
                                 ))}

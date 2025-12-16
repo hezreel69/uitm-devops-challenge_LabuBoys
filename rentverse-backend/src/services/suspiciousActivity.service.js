@@ -68,9 +68,6 @@ async function recordLoginAttempt({
 }) {
   const { deviceType, browser, os } = parseUserAgent(userAgent);
 
-  // Calculate risk score
-  const riskScore = await calculateRiskScore(userId, ipAddress, userAgent);
-
   const loginHistory = await prisma.loginHistory.create({
     data: {
       userId,
@@ -81,73 +78,15 @@ async function recordLoginAttempt({
       os,
       success,
       failReason,
-      riskScore,
       loginMethod, // Track OAuth provider
     },
   });
 
   console.log(
-    `[LOGIN_HISTORY] Recorded ${success ? 'successful' : 'failed'} ${loginMethod} login for user ${userId}, risk: ${riskScore}`
+    `[LOGIN_HISTORY] Recorded ${success ? 'successful' : 'failed'} ${loginMethod} login for user ${userId}`
   );
 
   return loginHistory;
-}
-
-/**
- * Calculate risk score for a login attempt
- * @param {string} userId - User ID
- * @param {string} ipAddress - IP address
- * @param {string} userAgent - User agent
- * @returns {number} - Risk score 0-100
- */
-async function calculateRiskScore(userId, ipAddress, userAgent) {
-  let riskScore = 0;
-
-  try {
-    // Check if this is a new device
-    const deviceHash = generateDeviceHash(userAgent, ipAddress);
-    const knownDevice = await prisma.userDevice.findFirst({
-      where: { userId, deviceHash },
-    });
-
-    if (!knownDevice) {
-      riskScore += 30; // New device adds risk
-    }
-
-    // Check for recent failed attempts
-    const recentFailures = await prisma.loginHistory.count({
-      where: {
-        userId,
-        success: false,
-        createdAt: { gte: new Date(Date.now() - 15 * 60 * 1000) }, // Last 15 minutes
-      },
-    });
-
-    riskScore += Math.min(recentFailures * 10, 30); // Up to 30 points for failures
-
-    // Check for unusual login time (between 2 AM and 5 AM local time)
-    const hour = new Date().getHours();
-    if (hour >= 2 && hour <= 5) {
-      riskScore += 15; // Unusual timing
-    }
-
-    // Check if IP was used for failed attempts on other accounts
-    const ipFailures = await prisma.loginHistory.count({
-      where: {
-        ipAddress,
-        success: false,
-        createdAt: { gte: new Date(Date.now() - 60 * 60 * 1000) }, // Last hour
-      },
-    });
-
-    if (ipFailures > 5) {
-      riskScore += 25; // Suspicious IP
-    }
-  } catch (error) {
-    console.error('[RISK_SCORE] Error calculating risk:', error);
-  }
-
-  return Math.min(riskScore, 100);
 }
 
 /**
@@ -298,7 +237,6 @@ module.exports = {
   generateDeviceHash,
   parseUserAgent,
   recordLoginAttempt,
-  calculateRiskScore,
   checkDevice,
   checkSuspiciousPatterns,
   getLoginHistory,

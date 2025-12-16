@@ -1,6 +1,7 @@
 const express = require('express');
 const { body } = require('express-validator');
 const { auth, authorize } = require('../../middleware/auth');
+const { requireRecentAuth } = require('../../middleware/reauth');
 const bookingsController = require('./bookings.controller');
 
 const router = express.Router();
@@ -60,6 +61,7 @@ const router = express.Router();
  * /api/bookings:
  *   post:
  *     summary: Create a new booking
+ *     description: Create a new booking - requires recent authentication (within 15 minutes)
  *     tags: [Bookings]
  *     security:
  *       - bearerAuth: []
@@ -112,6 +114,7 @@ router.post(
   '/',
   auth,
   authorize('USER', 'ADMIN'),
+  requireRecentAuth,
   [
     body('propertyId').isUUID().withMessage('Valid property ID is required'),
     body('startDate').isISO8601().withMessage('Valid start date is required'),
@@ -264,6 +267,7 @@ router.get('/:id', auth, bookingsController.getBookingById);
  * /api/bookings/{id}/approve:
  *   post:
  *     summary: Approve booking (owner only)
+ *     description: Approve a booking - requires recent authentication (within 15 minutes)
  *     tags: [Bookings]
  *     security:
  *       - bearerAuth: []
@@ -295,7 +299,12 @@ router.get('/:id', auth, bookingsController.getBookingById);
  *       409:
  *         description: Property no longer available for this period
  */
-router.post('/:id/approve', auth, bookingsController.approveBooking);
+router.post(
+  '/:id/approve',
+  auth,
+  requireRecentAuth,
+  bookingsController.approveBooking
+);
 
 /**
  * @swagger
