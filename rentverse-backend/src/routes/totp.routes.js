@@ -39,7 +39,10 @@ router.post('/setup', auth, async (req, res) => {
     }
 
     // Generate secret and QR code
-    const { secret, qrCode, backupCodes } = await totpService.generateSecret(userId, email);
+    const { secret, qrCode, backupCodes } = await totpService.generateSecret(
+      userId,
+      email
+    );
 
     // Log the action
     securityLogger.logInfo(req, 'TOTP setup initiated', {
@@ -49,7 +52,8 @@ router.post('/setup', auth, async (req, res) => {
 
     res.json({
       success: true,
-      message: 'TOTP secret generated. Scan the QR code with your authenticator app.',
+      message:
+        'TOTP secret generated. Scan the QR code with your authenticator app.',
       data: {
         qrCode, // Data URL for QR code image
         secret, // Manual entry key (if QR scan fails)
@@ -114,7 +118,8 @@ router.post('/verify-setup', auth, async (req, res) => {
 
       res.json({
         success: true,
-        message: 'TOTP enabled successfully! Use your authenticator app for future logins.',
+        message:
+          'TOTP enabled successfully! Use your authenticator app for future logins.',
       });
     } else {
       res.status(400).json({

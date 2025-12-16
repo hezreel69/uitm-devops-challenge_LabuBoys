@@ -26,7 +26,7 @@ class TotpService {
 
     // Generate backup codes (10 codes, 8 characters each)
     const backupCodes = this.generateBackupCodes(10);
-    const hashedBackupCodes = backupCodes.map(code => 
+    const hashedBackupCodes = backupCodes.map(code =>
       crypto.createHash('sha256').update(code).digest('hex')
     );
 
@@ -105,8 +105,8 @@ class TotpService {
   async verify(userId, token) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { 
-        mfaSecret: true, 
+      select: {
+        mfaSecret: true,
         totpEnabled: true,
         backupCodes: true,
       },
@@ -133,17 +133,21 @@ class TotpService {
 
     // If TOTP fails, check if it's a backup code
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
-    
+
     if (user.backupCodes && user.backupCodes.includes(hashedToken)) {
       // Remove used backup code
-      const updatedCodes = user.backupCodes.filter(code => code !== hashedToken);
-      
+      const updatedCodes = user.backupCodes.filter(
+        code => code !== hashedToken
+      );
+
       await prisma.user.update({
         where: { id: userId },
         data: { backupCodes: updatedCodes },
       });
 
-      console.log(`[TOTP] Backup code used for user ${userId}. Remaining: ${updatedCodes.length}`);
+      console.log(
+        `[TOTP] Backup code used for user ${userId}. Remaining: ${updatedCodes.length}`
+      );
       return true;
     }
 
@@ -190,18 +194,19 @@ class TotpService {
   encryptSecret(secret) {
     const algorithm = 'aes-256-gcm';
     const key = crypto.scryptSync(
-      process.env.TOTP_ENCRYPTION_KEY || 'default-encryption-key-change-in-production',
+      process.env.TOTP_ENCRYPTION_KEY ||
+        'default-encryption-key-change-in-production',
       'salt',
       32
     );
     const iv = crypto.randomBytes(16);
-    
+
     const cipher = crypto.createCipheriv(algorithm, key, iv);
     let encrypted = cipher.update(secret, 'utf8', 'base64');
     encrypted += cipher.final('base64');
-    
+
     const authTag = cipher.getAuthTag();
-    
+
     // Return: iv:authTag:encrypted (all base64)
     return `${iv.toString('base64')}:${authTag.toString('base64')}:${encrypted}`;
   }
@@ -214,21 +219,22 @@ class TotpService {
   decryptSecret(encryptedSecret) {
     const algorithm = 'aes-256-gcm';
     const key = crypto.scryptSync(
-      process.env.TOTP_ENCRYPTION_KEY || 'default-encryption-key-change-in-production',
+      process.env.TOTP_ENCRYPTION_KEY ||
+        'default-encryption-key-change-in-production',
       'salt',
       32
     );
-    
+
     const [ivBase64, authTagBase64, encrypted] = encryptedSecret.split(':');
     const iv = Buffer.from(ivBase64, 'base64');
     const authTag = Buffer.from(authTagBase64, 'base64');
-    
+
     const decipher = crypto.createDecipheriv(algorithm, key, iv);
     decipher.setAuthTag(authTag);
-    
+
     let decrypted = decipher.update(encrypted, 'base64', 'utf8');
     decrypted += decipher.final('utf8');
-    
+
     return decrypted;
   }
 
