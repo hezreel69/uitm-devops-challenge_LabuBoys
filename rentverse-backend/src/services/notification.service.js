@@ -46,7 +46,10 @@ class NotificationService {
    * @param {boolean} [options.unreadOnly=false] - Filter unread only
    * @returns {Promise<Object>} Paginated notifications
    */
-  async getUserNotifications(userId, { page = 1, limit = 20, unreadOnly = false } = {}) {
+  async getUserNotifications(
+    userId,
+    { page = 1, limit = 20, unreadOnly = false } = {}
+  ) {
     try {
       const skip = (page - 1) * limit;
       const where = { userId };
@@ -217,7 +220,12 @@ class NotificationService {
   }
 
   // Notification type helpers
-  async notifyRentalApplication({ landlordId, tenantName, propertyTitle, leaseId }) {
+  async notifyRentalApplication({
+    landlordId,
+    tenantName,
+    propertyTitle,
+    leaseId,
+  }) {
     return this.createNotification({
       userId: landlordId,
       type: 'RENTAL_APPLICATION',
@@ -237,7 +245,12 @@ class NotificationService {
     });
   }
 
-  async notifyLandlordSigned({ tenantId, landlordName, propertyTitle, leaseId }) {
+  async notifyLandlordSigned({
+    tenantId,
+    landlordName,
+    propertyTitle,
+    leaseId,
+  }) {
     return this.createNotification({
       userId: tenantId,
       type: 'AGREEMENT_SIGNED_LANDLORD',

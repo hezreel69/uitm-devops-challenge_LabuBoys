@@ -242,11 +242,14 @@ class BookingsService {
     try {
       await notificationService.notifyRentalApplication({
         landlordId: property.ownerId,
-        tenantName: booking.tenant.name || booking.tenant.firstName || 'A tenant',
+        tenantName:
+          booking.tenant.name || booking.tenant.firstName || 'A tenant',
         propertyTitle: booking.property.title,
         leaseId: booking.id,
       });
-      console.log('🔔 Notification sent to landlord about new rental application');
+      console.log(
+        '🔔 Notification sent to landlord about new rental application'
+      );
     } catch (notifError) {
       console.error('❌ Error sending notification:', notifError.message);
       // Don't fail the booking if notification fails
