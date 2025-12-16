@@ -21,7 +21,8 @@ import {
     Calendar,
     MapPin,
     X,
-    XCircle
+    XCircle,
+    TrendingUp
 } from 'lucide-react'
 import { createApiUrl } from '@/utils/apiConfig'
 import Image from 'next/image'
@@ -195,7 +196,7 @@ export default function AdminAgreementsPage() {
             const data = await response.json()
 
             if (data.success) {
-                setToast({ show: true, type: 'success', message: `📧 Reminder sent to ${data.data.sentTo}` })
+                setToast({ show: true, type: 'success', message: `Reminder sent to ${data.data.sentTo}` })
             } else {
                 setToast({ show: true, type: 'error', message: data.message || 'Failed to send reminder' })
             }
@@ -209,7 +210,7 @@ export default function AdminAgreementsPage() {
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'COMPLETED': return 'bg-green-100 text-green-700'
+            case 'COMPLETED': return 'bg-emerald-100 text-emerald-700'
             case 'PENDING_LANDLORD': return 'bg-amber-100 text-amber-700'
             case 'PENDING_TENANT': return 'bg-blue-100 text-blue-700'
             case 'EXPIRED': return 'bg-red-100 text-red-700'
@@ -243,7 +244,10 @@ export default function AdminAgreementsPage() {
         return (
             <ContentWrapper>
                 <div className="flex items-center justify-center min-h-[60vh]">
-                    <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+                    <div className="relative">
+                        <div className="w-16 h-16 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
+                        <div className="absolute inset-0 w-16 h-16 border-4 border-teal-200 border-t-teal-600 rounded-full animate-spin animation-delay-150" style={{ animationDirection: 'reverse' }}></div>
+                    </div>
                 </div>
             </ContentWrapper>
         )
@@ -254,84 +258,100 @@ export default function AdminAgreementsPage() {
             {/* Toast Notification */}
             {toast.show && (
                 <div className="fixed top-4 right-4 z-50 animate-[slideIn_0.3s_ease-out]">
-                    <div className={`flex items-center gap-3 px-5 py-4 rounded-xl shadow-lg border backdrop-blur-sm ${toast.type === 'success'
-                        ? 'bg-emerald-50/95 border-emerald-200 text-emerald-800'
-                        : 'bg-red-50/95 border-red-200 text-red-800'
+                    <div className={`flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl border-2 backdrop-blur-md ${toast.type === 'success'
+                        ? 'bg-gradient-to-r from-emerald-50/95 to-teal-50/95 border-emerald-300 text-emerald-800'
+                        : 'bg-gradient-to-r from-red-50/95 to-rose-50/95 border-red-300 text-red-800'
                         }`}>
-                        <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${toast.type === 'success' ? 'bg-emerald-100' : 'bg-red-100'
+                        <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center shadow-lg ${toast.type === 'success' 
+                            ? 'bg-gradient-to-br from-emerald-400 to-teal-500' 
+                            : 'bg-gradient-to-br from-red-400 to-rose-500'
                             }`}>
                             {toast.type === 'success' ? (
-                                <CheckCircle size={18} className="text-emerald-600" />
+                                <CheckCircle size={20} className="text-white" />
                             ) : (
-                                <XCircle size={18} className="text-red-600" />
+                                <XCircle size={20} className="text-white" />
                             )}
                         </div>
-                        <span className="font-medium">{toast.message}</span>
+                        <span className="font-semibold text-base">{toast.message}</span>
                         <button
                             onClick={() => setToast({ ...toast, show: false })}
-                            className="ml-2 p-1 hover:bg-black/5 rounded-full transition-colors"
+                            className="ml-2 p-1.5 hover:bg-black/10 rounded-full transition-colors"
                         >
-                            <X size={16} />
+                            <X size={18} />
                         </button>
                     </div>
                 </div>
             )}
-            <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                    <div className="flex items-center space-x-3">
-                        <FileSignature size={28} className="text-indigo-600" />
-                        <div>
-                            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Agreements Management</h1>
-                            <p className="text-sm text-slate-500 hidden sm:block">Track and manage digital rental agreements</p>
+            <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+                {/* Header Section */}
+                <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-3xl shadow-2xl p-6 sm:p-8 mb-8">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div className="flex items-center space-x-4">
+                            <div className="bg-white/20 backdrop-blur-sm p-3 rounded-2xl">
+                                <FileSignature size={32} className="text-white" />
+                            </div>
+                            <div>
+                                <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">
+                                    Agreements Management
+                                </h1>
+                                <p className="text-emerald-50 text-sm sm:text-base">Track and manage digital rental agreements</p>
+                            </div>
                         </div>
+                        <Link
+                            href="/admin"
+                            className="flex items-center space-x-2 px-5 py-2.5 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-xl transition-all shadow-lg hover:shadow-xl"
+                        >
+                            <span className="font-medium">Back to Dashboard</span>
+                            <ChevronRight size={18} />
+                        </Link>
                     </div>
-                    <Link
-                        href="/admin"
-                        className="flex items-center space-x-2 text-sm text-slate-600 hover:text-slate-900"
-                    >
-                        <span>Back to Dashboard</span>
-                        <ChevronRight size={16} />
-                    </Link>
                 </div>
 
                 {/* Stats Cards */}
                 {statistics && (
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
-                        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 mb-8">
+                        <div className="bg-white p-5 sm:p-6 rounded-2xl border-2 border-slate-100 shadow-xl hover:shadow-2xl transition-shadow">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs sm:text-sm text-slate-500">Total</p>
-                                    <p className="text-xl sm:text-2xl font-bold text-slate-900">{statistics.totalAgreements}</p>
+                                    <p className="text-sm text-slate-500 mb-1">Total Agreements</p>
+                                    <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">{statistics.totalAgreements}</p>
                                 </div>
-                                <FileSignature size={20} className="text-slate-400" />
+                                <div className="bg-gradient-to-br from-emerald-100 to-teal-100 p-3 rounded-xl">
+                                    <FileSignature size={24} className="text-emerald-600" />
+                                </div>
                             </div>
                         </div>
-                        <div className="bg-white p-4 rounded-xl border border-amber-200 shadow-sm">
+                        <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-5 sm:p-6 rounded-2xl border-2 border-amber-200 shadow-xl hover:shadow-2xl transition-shadow">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs sm:text-sm text-amber-600">Pending</p>
-                                    <p className="text-xl sm:text-2xl font-bold text-amber-700">{statistics.pendingSignatures}</p>
+                                    <p className="text-sm text-amber-700 mb-1 font-medium">Pending</p>
+                                    <p className="text-3xl sm:text-4xl font-bold text-amber-700">{statistics.pendingSignatures}</p>
                                 </div>
-                                <Clock size={20} className="text-amber-400" />
+                                <div className="bg-amber-200 p-3 rounded-xl">
+                                    <Clock size={24} className="text-amber-700" />
+                                </div>
                             </div>
                         </div>
-                        <div className="bg-white p-4 rounded-xl border border-green-200 shadow-sm">
+                        <div className="bg-gradient-to-br from-emerald-50 to-green-50 p-5 sm:p-6 rounded-2xl border-2 border-emerald-200 shadow-xl hover:shadow-2xl transition-shadow">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs sm:text-sm text-green-600">Completed</p>
-                                    <p className="text-xl sm:text-2xl font-bold text-green-700">{statistics.completed}</p>
+                                    <p className="text-sm text-emerald-700 mb-1 font-medium">Completed</p>
+                                    <p className="text-3xl sm:text-4xl font-bold text-emerald-700">{statistics.completed}</p>
                                 </div>
-                                <CheckCircle size={20} className="text-green-400" />
+                                <div className="bg-emerald-200 p-3 rounded-xl">
+                                    <CheckCircle size={24} className="text-emerald-700" />
+                                </div>
                             </div>
                         </div>
-                        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                        <div className="bg-gradient-to-br from-teal-50 to-cyan-50 p-5 sm:p-6 rounded-2xl border-2 border-teal-200 shadow-xl hover:shadow-2xl transition-shadow">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs sm:text-sm text-slate-500">Rate</p>
-                                    <p className="text-xl sm:text-2xl font-bold text-slate-900">{statistics.completionRate}%</p>
+                                    <p className="text-sm text-teal-700 mb-1 font-medium">Success Rate</p>
+                                    <p className="text-3xl sm:text-4xl font-bold text-teal-700">{statistics.completionRate}%</p>
                                 </div>
-                                <AlertTriangle size={20} className="text-slate-400" />
+                                <div className="bg-teal-200 p-3 rounded-xl">
+                                    <TrendingUp size={24} className="text-teal-700" />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -339,61 +359,63 @@ export default function AdminAgreementsPage() {
 
                 {/* 7-Day Trend */}
                 {trends.length > 0 && (
-                    <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 mb-6 shadow-sm">
-                        <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-4">7-Day Agreement Trend</h3>
-                        <div className="space-y-2">
+                    <div className="bg-white rounded-3xl border-2 border-slate-100 p-6 sm:p-8 mb-8 shadow-2xl">
+                        <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-6">
+                            7-Day Agreement Trend
+                        </h3>
+                        <div className="space-y-3">
                             {trends.map((day) => (
-                                <div key={day.date} className="flex items-center gap-2 sm:gap-4">
-                                    <span className="w-20 sm:w-24 text-xs sm:text-sm text-slate-600">
+                                <div key={day.date} className="flex items-center gap-3 sm:gap-4">
+                                    <span className="w-24 sm:w-32 text-sm font-medium text-slate-700">
                                         {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                                     </span>
-                                    <div className="flex-1 flex h-4 sm:h-6 rounded overflow-hidden bg-slate-100">
+                                    <div className="flex-1 flex h-7 sm:h-8 rounded-xl overflow-hidden bg-slate-100 shadow-inner">
                                         <div
-                                            className="bg-green-500 transition-all"
+                                            className="bg-gradient-to-r from-emerald-500 to-emerald-600 transition-all"
                                             style={{ width: `${(day.completed / Math.max(day.created, day.completed, 1)) * 100}%` }}
                                         />
                                         <div
-                                            className="bg-blue-400 transition-all"
+                                            className="bg-gradient-to-r from-teal-400 to-cyan-500 transition-all"
                                             style={{ width: `${(day.created / Math.max(day.created, day.completed, 1)) * 100}%` }}
                                         />
                                     </div>
-                                    <span className="w-16 sm:w-20 text-xs sm:text-sm text-slate-600 text-right">
+                                    <span className="w-20 sm:w-24 text-sm font-semibold text-slate-700 text-right">
                                         {day.completed}✓ {day.created}+
                                     </span>
                                 </div>
                             ))}
                         </div>
-                        <div className="flex gap-4 sm:gap-6 mt-4 text-xs sm:text-sm">
+                        <div className="flex gap-6 sm:gap-8 mt-6 text-sm font-medium">
                             <span className="flex items-center gap-2">
-                                <span className="w-3 h-3 bg-green-500 rounded" /> Completed
+                                <span className="w-4 h-4 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full shadow" /> Completed
                             </span>
                             <span className="flex items-center gap-2">
-                                <span className="w-3 h-3 bg-blue-400 rounded" /> Created
+                                <span className="w-4 h-4 bg-gradient-to-r from-teal-400 to-cyan-500 rounded-full shadow" /> Created
                             </span>
                         </div>
                     </div>
                 )}
 
                 {/* Filters */}
-                <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                <div className="flex flex-col sm:flex-row gap-4 mb-8">
                     <div className="relative flex-1">
-                        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-600" />
                         <input
                             type="text"
                             placeholder="Search by property, landlord, or tenant..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full pl-12 pr-4 py-3.5 border-2 border-emerald-200 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-emerald-200 focus:border-emerald-500 shadow-lg bg-white"
                         />
                     </div>
-                    <div className="flex gap-2 overflow-x-auto">
+                    <div className="flex gap-2 overflow-x-auto pb-2">
                         {['all', 'DRAFT', 'PENDING_LANDLORD', 'PENDING_TENANT', 'COMPLETED', 'EXPIRED'].map((status) => (
                             <button
                                 key={status}
                                 onClick={() => setStatusFilter(status)}
-                                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg whitespace-nowrap transition-colors ${statusFilter === status
-                                    ? 'bg-indigo-600 text-white'
-                                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                                className={`px-4 sm:px-5 py-3 text-sm font-semibold rounded-xl whitespace-nowrap transition-all shadow-lg ${statusFilter === status
+                                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-xl scale-105'
+                                    : 'bg-white border-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-emerald-300'
                                     }`}
                             >
                                 {status === 'all' ? 'All' : getStatusLabel(status)}
@@ -403,83 +425,89 @@ export default function AdminAgreementsPage() {
                 </div>
 
                 {/* Agreements List */}
-                <div className="space-y-4">
+                <div className="space-y-5">
                     {agreements.length === 0 ? (
-                        <div className="text-center py-12">
-                            <FileSignature size={48} className="mx-auto text-slate-300 mb-4" />
-                            <p className="text-slate-500">No agreements found</p>
+                        <div className="text-center py-20 bg-white rounded-3xl shadow-xl">
+                            <FileSignature size={64} className="mx-auto text-slate-300 mb-4" />
+                            <p className="text-lg text-slate-500 font-medium">No agreements found</p>
                         </div>
                     ) : (
                         agreements.map((agreement) => (
                             <div
                                 key={agreement.id}
-                                className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-md transition-shadow"
+                                className="bg-white rounded-3xl border-2 border-slate-100 overflow-hidden hover:shadow-2xl transition-all duration-300 hover:scale-[1.01]"
                             >
                                 <div className="flex flex-col sm:flex-row">
                                     {/* Property Image */}
-                                    <div className="sm:w-32 md:w-40 relative">
-                                        <div className="h-32 sm:h-full relative">
+                                    <div className="sm:w-40 md:w-56 relative">
+                                        <div className="h-40 sm:h-full relative">
                                             <Image
                                                 src={agreement.lease.property.images?.[0] || '/placeholder-property.jpg'}
                                                 alt={agreement.lease.property.title}
                                                 fill
                                                 className="object-cover"
                                             />
-                                            <span className={`absolute top-2 left-2 px-2 py-1 rounded-full text-[10px] sm:text-xs font-medium ${getStatusColor(agreement.status)}`}>
+                                            <span className={`absolute top-3 left-3 px-3 py-1.5 rounded-xl text-xs font-bold shadow-lg ${getStatusColor(agreement.status)}`}>
                                                 {getStatusLabel(agreement.status)}
                                             </span>
                                         </div>
                                     </div>
 
                                     {/* Details */}
-                                    <div className="flex-1 p-4">
-                                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
+                                    <div className="flex-1 p-5 sm:p-6">
+                                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
                                             <div>
-                                                <h3 className="font-semibold text-slate-900 text-sm sm:text-base line-clamp-1">
+                                                <h3 className="font-bold text-slate-900 text-base sm:text-lg line-clamp-1 mb-1">
                                                     {agreement.lease.property.title}
                                                 </h3>
-                                                <p className="text-xs sm:text-sm text-slate-500 flex items-center gap-1">
-                                                    <MapPin size={12} />
+                                                <p className="text-sm text-slate-600 flex items-center gap-1.5">
+                                                    <MapPin size={14} className="text-emerald-600" />
                                                     {agreement.lease.property.city}
                                                 </p>
                                             </div>
-                                            <p className="text-xs text-slate-400">
+                                            <p className="text-xs text-slate-500 font-medium">
                                                 {formatDate(agreement.generatedAt)}
                                             </p>
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm mb-3">
-                                            <div className="flex items-center gap-1 text-slate-600">
-                                                <Home size={12} />
-                                                <span className="truncate">{agreement.lease.landlord.name}</span>
+                                        <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+                                            <div className="flex items-center gap-2 text-slate-700">
+                                                <div className="bg-emerald-100 p-1.5 rounded-lg">
+                                                    <Home size={14} className="text-emerald-600" />
+                                                </div>
+                                                <span className="truncate font-medium">{agreement.lease.landlord.name}</span>
                                             </div>
-                                            <div className="flex items-center gap-1 text-slate-600">
-                                                <User size={12} />
-                                                <span className="truncate">{agreement.lease.tenant.name}</span>
+                                            <div className="flex items-center gap-2 text-slate-700">
+                                                <div className="bg-teal-100 p-1.5 rounded-lg">
+                                                    <User size={14} className="text-teal-600" />
+                                                </div>
+                                                <span className="truncate font-medium">{agreement.lease.tenant.name}</span>
                                             </div>
-                                            <div className="flex items-center gap-1 text-slate-600 col-span-2">
-                                                <Calendar size={12} />
-                                                <span>{formatDate(agreement.lease.startDate)} - {formatDate(agreement.lease.endDate)}</span>
+                                            <div className="flex items-center gap-2 text-slate-700 col-span-2">
+                                                <div className="bg-cyan-100 p-1.5 rounded-lg">
+                                                    <Calendar size={14} className="text-cyan-600" />
+                                                </div>
+                                                <span className="font-medium">{formatDate(agreement.lease.startDate)} - {formatDate(agreement.lease.endDate)}</span>
                                             </div>
                                         </div>
 
                                         {/* Signature Status */}
-                                        <div className="flex items-center gap-4 text-xs mb-3">
-                                            <span className={`flex items-center gap-1 ${agreement.landlordSigned ? 'text-green-600' : 'text-amber-600'}`}>
-                                                {agreement.landlordSigned ? <CheckCircle size={12} /> : <Clock size={12} />}
+                                        <div className="flex items-center gap-5 text-sm mb-4">
+                                            <span className={`flex items-center gap-2 font-semibold ${agreement.landlordSigned ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                                {agreement.landlordSigned ? <CheckCircle size={16} /> : <Clock size={16} />}
                                                 Landlord: {agreement.landlordSigned ? 'Signed' : 'Pending'}
                                             </span>
-                                            <span className={`flex items-center gap-1 ${agreement.tenantSigned ? 'text-green-600' : 'text-amber-600'}`}>
-                                                {agreement.tenantSigned ? <CheckCircle size={12} /> : <Clock size={12} />}
+                                            <span className={`flex items-center gap-2 font-semibold ${agreement.tenantSigned ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                                {agreement.tenantSigned ? <CheckCircle size={16} /> : <Clock size={16} />}
                                                 Tenant: {agreement.tenantSigned ? 'Signed' : 'Pending'}
                                             </span>
                                         </div>
 
                                         {/* Actions */}
-                                        <div className="flex flex-wrap gap-2">
+                                        <div className="flex flex-wrap gap-3">
                                             <Link
                                                 href={`/admin/agreements/${agreement.leaseId}`}
-                                                className="px-3 py-1.5 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700 transition-colors"
+                                                className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-semibold rounded-xl hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg hover:shadow-xl"
                                             >
                                                 View Details
                                             </Link>
@@ -487,23 +515,23 @@ export default function AdminAgreementsPage() {
                                                 <button
                                                     onClick={() => handleSendReminder(agreement.id)}
                                                     disabled={sendingReminder === agreement.id}
-                                                    className="px-3 py-1.5 bg-amber-500 text-white text-xs rounded-lg hover:bg-amber-600 transition-colors disabled:opacity-50 flex items-center gap-1"
+                                                    className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-semibold rounded-xl hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 flex items-center gap-2"
                                                 >
                                                     {sendingReminder === agreement.id ? (
-                                                        <Loader2 size={12} className="animate-spin" />
+                                                        <Loader2 size={16} className="animate-spin" />
                                                     ) : (
-                                                        <Send size={12} />
+                                                        <Send size={16} />
                                                     )}
-                                                    Remind
+                                                    Send Reminder
                                                 </button>
                                             )}
                                             {agreement.status === 'COMPLETED' && agreement.pdfUrl && (
                                                 <button
                                                     onClick={() => window.open(agreement.pdfUrl!, '_blank')}
-                                                    className="px-3 py-1.5 bg-slate-200 text-slate-700 text-xs rounded-lg hover:bg-slate-300 transition-colors flex items-center gap-1"
+                                                    className="px-5 py-2.5 bg-slate-200 text-slate-700 text-sm font-semibold rounded-xl hover:bg-slate-300 transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
                                                 >
-                                                    <Download size={12} />
-                                                    PDF
+                                                    <Download size={16} />
+                                                    Download PDF
                                                 </button>
                                             )}
                                         </div>
@@ -515,7 +543,7 @@ export default function AdminAgreementsPage() {
                 </div>
 
                 {/* Bottom spacing for mobile nav */}
-                <div className="h-20 md:hidden"></div>
+                <div className="h-24 md:hidden"></div>
             </div>
         </ContentWrapper>
     )

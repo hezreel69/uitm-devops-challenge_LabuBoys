@@ -24,7 +24,9 @@ import {
     Phone,
     RefreshCw,
     X,
-    XCircle
+    XCircle,
+    DollarSign,
+    Building
 } from 'lucide-react'
 
 interface Agreement {
@@ -130,7 +132,7 @@ export default function AdminAgreementDetailsPage() {
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'COMPLETED': return 'bg-green-100 text-green-700'
+            case 'COMPLETED': return 'bg-emerald-100 text-emerald-700'
             case 'PENDING_LANDLORD': return 'bg-amber-100 text-amber-700'
             case 'PENDING_TENANT': return 'bg-blue-100 text-blue-700'
             case 'EXPIRED': return 'bg-red-100 text-red-700'
@@ -174,7 +176,10 @@ export default function AdminAgreementDetailsPage() {
         return (
             <ContentWrapper>
                 <div className="flex items-center justify-center min-h-[60vh]">
-                    <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+                    <div className="relative">
+                        <div className="w-20 h-20 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
+                        <div className="absolute inset-0 w-20 h-20 border-4 border-teal-200 border-t-teal-600 rounded-full animate-spin animation-delay-150" style={{ animationDirection: 'reverse' }}></div>
+                    </div>
                 </div>
             </ContentWrapper>
         )
@@ -184,14 +189,16 @@ export default function AdminAgreementDetailsPage() {
         return (
             <ContentWrapper>
                 <div className="flex flex-col items-center justify-center min-h-[60vh]">
-                    <AlertTriangle className="w-12 h-12 text-red-500 mb-4" />
-                    <h2 className="text-xl font-semibold text-slate-900 mb-2">Error</h2>
-                    <p className="text-slate-500 mb-6">{error || 'Agreement not found'}</p>
+                    <div className="bg-gradient-to-br from-red-100 to-rose-100 p-6 rounded-3xl shadow-xl mb-6">
+                        <AlertTriangle className="w-16 h-16 text-red-600" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-slate-900 mb-2">Error</h2>
+                    <p className="text-slate-600 mb-8 text-center max-w-md">{error || 'Agreement not found'}</p>
                     <Link
                         href="/admin/agreements"
-                        className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800"
+                        className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl hover:from-emerald-700 hover:to-teal-700 shadow-xl font-semibold flex items-center gap-2"
                     >
-                        <ChevronLeft className="w-4 h-4 inline mr-1" />
+                        <ChevronLeft className="w-5 h-5" />
                         Go Back
                     </Link>
                 </div>
@@ -204,107 +211,117 @@ export default function AdminAgreementDetailsPage() {
             {/* Toast Notification */}
             {toast.show && (
                 <div className="fixed top-4 right-4 z-50 animate-[slideIn_0.3s_ease-out]">
-                    <div className={`flex items-center gap-3 px-5 py-4 rounded-xl shadow-lg border backdrop-blur-sm ${toast.type === 'success'
-                            ? 'bg-emerald-50/95 border-emerald-200 text-emerald-800'
-                            : 'bg-red-50/95 border-red-200 text-red-800'
+                    <div className={`flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl border-2 backdrop-blur-md ${toast.type === 'success'
+                            ? 'bg-gradient-to-r from-emerald-50/95 to-teal-50/95 border-emerald-300 text-emerald-800'
+                            : 'bg-gradient-to-r from-red-50/95 to-rose-50/95 border-red-300 text-red-800'
                         }`}>
-                        <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${toast.type === 'success' ? 'bg-emerald-100' : 'bg-red-100'
+                        <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center shadow-lg ${toast.type === 'success' 
+                            ? 'bg-gradient-to-br from-emerald-400 to-teal-500' 
+                            : 'bg-gradient-to-br from-red-400 to-rose-500'
                             }`}>
                             {toast.type === 'success' ? (
-                                <CheckCircle size={18} className="text-emerald-600" />
+                                <CheckCircle size={20} className="text-white" />
                             ) : (
-                                <XCircle size={18} className="text-red-600" />
+                                <XCircle size={20} className="text-white" />
                             )}
                         </div>
-                        <span className="font-medium">{toast.message}</span>
+                        <span className="font-semibold text-base">{toast.message}</span>
                         <button
                             onClick={() => setToast({ ...toast, show: false })}
-                            className="ml-2 p-1 hover:bg-black/5 rounded-full transition-colors"
+                            className="ml-2 p-1.5 hover:bg-black/10 rounded-full transition-colors"
                         >
-                            <X size={16} />
+                            <X size={18} />
                         </button>
                     </div>
                 </div>
             )}
-            <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+            <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center space-x-3">
-                        <FileSignature size={28} className="text-indigo-600" />
-                        <div>
-                            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Agreement Details</h1>
-                            <p className="text-sm text-slate-500">Admin View</p>
+                <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-3xl shadow-2xl p-6 sm:p-8 mb-8">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                            <div className="bg-white/20 backdrop-blur-sm p-3 rounded-2xl">
+                                <FileSignature size={32} className="text-white" />
+                            </div>
+                            <div>
+                                <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">Agreement Details</h1>
+                                <p className="text-emerald-50 text-sm">Admin Management View</p>
+                            </div>
                         </div>
+                        <Link
+                            href="/admin/agreements"
+                            className="flex items-center space-x-2 px-5 py-2.5 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-xl transition-all shadow-lg hover:shadow-xl"
+                        >
+                            <ChevronLeft size={18} />
+                            <span className="font-medium hidden sm:inline">Back</span>
+                        </Link>
                     </div>
-                    <Link
-                        href="/admin/agreements"
-                        className="flex items-center space-x-2 text-sm text-slate-600 hover:text-slate-900"
-                    >
-                        <ChevronLeft size={16} />
-                        <span>Back to Agreements</span>
-                    </Link>
                 </div>
 
-                <div className="grid lg:grid-cols-3 gap-6">
+                <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* Status Card */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-lg font-semibold text-slate-900">Agreement Status</h2>
-                                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(agreement.status)}`}>
+                        <div className="bg-white rounded-3xl shadow-2xl border-2 border-slate-100 p-6 sm:p-8">
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                                    Agreement Status
+                                </h2>
+                                <span className={`px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${getStatusColor(agreement.status)}`}>
                                     {getStatusLabel(agreement.status)}
                                 </span>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="p-4 bg-slate-50 rounded-xl">
-                                    <p className="text-sm text-slate-500 mb-1">Landlord Signature</p>
-                                    <div className={`flex items-center gap-2 font-medium ${agreement.landlordSigned ? 'text-green-600' : 'text-amber-600'}`}>
-                                        {agreement.landlordSigned ? <CheckCircle size={18} /> : <Clock size={18} />}
+                            <div className="grid grid-cols-2 gap-4 sm:gap-6">
+                                <div className="p-5 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl border-2 border-emerald-200 shadow-lg">
+                                    <p className="text-sm text-emerald-700 mb-2 font-semibold">Landlord Signature</p>
+                                    <div className={`flex items-center gap-2 font-bold text-lg ${agreement.landlordSigned ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                        {agreement.landlordSigned ? <CheckCircle size={20} /> : <Clock size={20} />}
                                         {agreement.landlordSigned ? 'Signed' : 'Pending'}
                                     </div>
                                     {agreement.landlordSignedAt && (
-                                        <p className="text-xs text-slate-400 mt-1">{formatDateTime(agreement.landlordSignedAt)}</p>
+                                        <p className="text-xs text-slate-500 mt-2 font-medium">{formatDateTime(agreement.landlordSignedAt)}</p>
                                     )}
                                 </div>
-                                <div className="p-4 bg-slate-50 rounded-xl">
-                                    <p className="text-sm text-slate-500 mb-1">Tenant Signature</p>
-                                    <div className={`flex items-center gap-2 font-medium ${agreement.tenantSigned ? 'text-green-600' : 'text-amber-600'}`}>
-                                        {agreement.tenantSigned ? <CheckCircle size={18} /> : <Clock size={18} />}
+                                <div className="p-5 bg-gradient-to-br from-teal-50 to-cyan-50 rounded-2xl border-2 border-teal-200 shadow-lg">
+                                    <p className="text-sm text-teal-700 mb-2 font-semibold">Tenant Signature</p>
+                                    <div className={`flex items-center gap-2 font-bold text-lg ${agreement.tenantSigned ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                        {agreement.tenantSigned ? <CheckCircle size={20} /> : <Clock size={20} />}
                                         {agreement.tenantSigned ? 'Signed' : 'Pending'}
                                     </div>
                                     {agreement.tenantSignedAt && (
-                                        <p className="text-xs text-slate-400 mt-1">{formatDateTime(agreement.tenantSignedAt)}</p>
+                                        <p className="text-xs text-slate-500 mt-2 font-medium">{formatDateTime(agreement.tenantSignedAt)}</p>
                                     )}
                                 </div>
                             </div>
 
-                            <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-2 gap-4 text-sm">
-                                <div>
-                                    <p className="text-slate-500">Generated</p>
-                                    <p className="font-medium text-slate-900">{formatDateTime(agreement.generatedAt)}</p>
+                            <div className="mt-6 pt-6 border-t-2 border-slate-100 grid grid-cols-2 gap-4 sm:gap-6 text-sm">
+                                <div className="p-4 bg-slate-50 rounded-xl">
+                                    <p className="text-slate-500 font-semibold mb-1">Generated</p>
+                                    <p className="font-bold text-slate-900">{formatDateTime(agreement.generatedAt)}</p>
                                 </div>
                                 {agreement.completedAt && (
-                                    <div>
-                                        <p className="text-slate-500">Completed</p>
-                                        <p className="font-medium text-green-600">{formatDateTime(agreement.completedAt)}</p>
+                                    <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200">
+                                        <p className="text-emerald-700 font-semibold mb-1">Completed</p>
+                                        <p className="font-bold text-emerald-600">{formatDateTime(agreement.completedAt)}</p>
                                     </div>
                                 )}
                                 {agreement.expiresAt && !agreement.completedAt && (
-                                    <div>
-                                        <p className="text-slate-500">Expires</p>
-                                        <p className="font-medium text-amber-600">{formatDateTime(agreement.expiresAt)}</p>
+                                    <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
+                                        <p className="text-amber-700 font-semibold mb-1">Expires</p>
+                                        <p className="font-bold text-amber-600">{formatDateTime(agreement.expiresAt)}</p>
                                     </div>
                                 )}
                             </div>
                         </div>
 
                         {/* Property Info */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-                            <h2 className="text-lg font-semibold text-slate-900 mb-4">Property Information</h2>
-                            <div className="flex gap-4">
-                                <div className="w-24 h-24 relative rounded-xl overflow-hidden flex-shrink-0">
+                        <div className="bg-white rounded-3xl shadow-2xl border-2 border-slate-100 p-6 sm:p-8">
+                            <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-6">
+                                Property Information
+                            </h2>
+                            <div className="flex gap-5">
+                                <div className="w-32 h-32 relative rounded-2xl overflow-hidden flex-shrink-0 shadow-xl border-2 border-slate-100">
                                     <Image
                                         src={agreement.lease.property.images?.[0] || '/placeholder-property.jpg'}
                                         alt={agreement.lease.property.title}
@@ -312,19 +329,28 @@ export default function AdminAgreementDetailsPage() {
                                         className="object-cover"
                                     />
                                 </div>
-                                <div>
-                                    <h3 className="font-semibold text-slate-900">{agreement.lease.property.title}</h3>
-                                    <p className="text-sm text-slate-500 flex items-center gap-1 mt-1">
-                                        <MapPin size={14} />
-                                        {agreement.lease.property.address}, {agreement.lease.property.city}
-                                    </p>
-                                    <div className="flex items-center gap-1 mt-2 text-sm text-slate-600">
-                                        <Calendar size={14} />
-                                        <span>{formatDate(agreement.lease.startDate)} - {formatDate(agreement.lease.endDate)}</span>
+                                <div className="flex-1">
+                                    <h3 className="font-bold text-slate-900 text-lg mb-2">{agreement.lease.property.title}</h3>
+                                    <div className="space-y-2">
+                                        <p className="text-sm text-slate-600 flex items-center gap-2">
+                                            <div className="bg-emerald-100 p-1.5 rounded-lg">
+                                                <MapPin size={14} className="text-emerald-600" />
+                                            </div>
+                                            <span className="font-medium">{agreement.lease.property.address}, {agreement.lease.property.city}</span>
+                                        </p>
+                                        <p className="text-sm text-slate-600 flex items-center gap-2">
+                                            <div className="bg-teal-100 p-1.5 rounded-lg">
+                                                <Calendar size={14} className="text-teal-600" />
+                                            </div>
+                                            <span className="font-medium">{formatDate(agreement.lease.startDate)} - {formatDate(agreement.lease.endDate)}</span>
+                                        </p>
+                                        <div className="pt-2">
+                                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-bold text-lg shadow-lg">
+                                                <DollarSign size={20} />
+                                                RM {parseFloat(agreement.lease.rentAmount || '0').toLocaleString()}/month
+                                            </div>
+                                        </div>
                                     </div>
-                                    <p className="mt-2 text-lg font-semibold text-indigo-600">
-                                        RM {parseFloat(agreement.lease.rentAmount || '0').toLocaleString()}/month
-                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -333,29 +359,35 @@ export default function AdminAgreementDetailsPage() {
                     {/* Sidebar - Parties Info */}
                     <div className="space-y-6">
                         {/* Landlord */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-                            <div className="flex items-center gap-2 mb-4">
-                                <Home size={18} className="text-indigo-600" />
-                                <h3 className="font-semibold text-slate-900">Landlord</h3>
+                        <div className="bg-white rounded-3xl shadow-2xl border-2 border-slate-100 p-6">
+                            <div className="flex items-center gap-3 mb-5">
+                                <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-2.5 rounded-xl shadow-lg">
+                                    <Home size={20} className="text-white" />
+                                </div>
+                                <h3 className="font-bold text-slate-900 text-lg">Landlord</h3>
                             </div>
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                                        <User size={18} className="text-indigo-600" />
+                                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center shadow-md">
+                                        <User size={20} className="text-emerald-600" />
                                     </div>
                                     <div>
-                                        <p className="font-medium text-slate-900">{agreement.lease.landlord.name}</p>
+                                        <p className="font-bold text-slate-900">{agreement.lease.landlord.name}</p>
                                     </div>
                                 </div>
-                                <div className="text-sm text-slate-600 space-y-1">
-                                    <p className="flex items-center gap-2">
-                                        <Mail size={14} />
-                                        {agreement.lease.landlord.email}
+                                <div className="text-sm text-slate-700 space-y-3 pl-1">
+                                    <p className="flex items-center gap-3">
+                                        <div className="bg-emerald-100 p-1.5 rounded-lg">
+                                            <Mail size={14} className="text-emerald-600" />
+                                        </div>
+                                        <span className="font-medium">{agreement.lease.landlord.email}</span>
                                     </p>
                                     {agreement.lease.landlord.phone && (
-                                        <p className="flex items-center gap-2">
-                                            <Phone size={14} />
-                                            {agreement.lease.landlord.phone}
+                                        <p className="flex items-center gap-3">
+                                            <div className="bg-teal-100 p-1.5 rounded-lg">
+                                                <Phone size={14} className="text-teal-600" />
+                                            </div>
+                                            <span className="font-medium">{agreement.lease.landlord.phone}</span>
                                         </p>
                                     )}
                                 </div>
@@ -363,29 +395,35 @@ export default function AdminAgreementDetailsPage() {
                         </div>
 
                         {/* Tenant */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-                            <div className="flex items-center gap-2 mb-4">
-                                <User size={18} className="text-teal-600" />
-                                <h3 className="font-semibold text-slate-900">Tenant</h3>
+                        <div className="bg-white rounded-3xl shadow-2xl border-2 border-slate-100 p-6">
+                            <div className="flex items-center gap-3 mb-5">
+                                <div className="bg-gradient-to-br from-teal-500 to-cyan-600 p-2.5 rounded-xl shadow-lg">
+                                    <User size={20} className="text-white" />
+                                </div>
+                                <h3 className="font-bold text-slate-900 text-lg">Tenant</h3>
                             </div>
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
-                                        <User size={18} className="text-teal-600" />
+                                    <div className="w-12 h-12 bg-gradient-to-br from-teal-100 to-cyan-100 rounded-xl flex items-center justify-center shadow-md">
+                                        <User size={20} className="text-teal-600" />
                                     </div>
                                     <div>
-                                        <p className="font-medium text-slate-900">{agreement.lease.tenant.name}</p>
+                                        <p className="font-bold text-slate-900">{agreement.lease.tenant.name}</p>
                                     </div>
                                 </div>
-                                <div className="text-sm text-slate-600 space-y-1">
-                                    <p className="flex items-center gap-2">
-                                        <Mail size={14} />
-                                        {agreement.lease.tenant.email}
+                                <div className="text-sm text-slate-700 space-y-3 pl-1">
+                                    <p className="flex items-center gap-3">
+                                        <div className="bg-teal-100 p-1.5 rounded-lg">
+                                            <Mail size={14} className="text-teal-600" />
+                                        </div>
+                                        <span className="font-medium">{agreement.lease.tenant.email}</span>
                                     </p>
                                     {agreement.lease.tenant.phone && (
-                                        <p className="flex items-center gap-2">
-                                            <Phone size={14} />
-                                            {agreement.lease.tenant.phone}
+                                        <p className="flex items-center gap-3">
+                                            <div className="bg-cyan-100 p-1.5 rounded-lg">
+                                                <Phone size={14} className="text-cyan-600" />
+                                            </div>
+                                            <span className="font-medium">{agreement.lease.tenant.phone}</span>
                                         </p>
                                     )}
                                 </div>
@@ -393,19 +431,18 @@ export default function AdminAgreementDetailsPage() {
                         </div>
 
                         {/* Quick Actions */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-                            <h3 className="font-semibold text-slate-900 mb-4">Actions</h3>
-                            <div className="space-y-2">
+                        <div className="bg-white rounded-3xl shadow-2xl border-2 border-slate-100 p-6">
+                            <h3 className="font-bold text-slate-900 text-lg mb-5">Quick Actions</h3>
+                            <div className="space-y-3">
                                 {agreement.status === 'COMPLETED' && agreement.pdfUrl && (
                                     <button
                                         onClick={() => window.open(agreement.pdfUrl!, '_blank')}
-                                        className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2"
+                                        className="w-full px-5 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl hover:from-emerald-700 hover:to-teal-700 flex items-center justify-center gap-2 font-bold shadow-xl hover:shadow-2xl transition-all"
                                     >
-                                        <Download size={16} />
+                                        <Download size={18} />
                                         Download PDF
                                     </button>
                                 )}
-                                {/* Regenerate PDF button - always available for admin */}
                                 <button
                                     onClick={async () => {
                                         try {
@@ -417,8 +454,7 @@ export default function AdminAgreementDetailsPage() {
                                             })
                                             const data = await res.json()
                                             if (data.success) {
-                                                setToast({ show: true, type: 'success', message: '✅ PDF regenerated successfully!' })
-                                                // Update the agreement with new PDF URL
+                                                setToast({ show: true, type: 'success', message: 'PDF regenerated successfully!' })
                                                 setAgreement(prev => prev ? { ...prev, pdfUrl: data.data.pdfUrl } : null)
                                             } else {
                                                 setToast({ show: true, type: 'error', message: data.message || 'Failed to regenerate PDF' })
@@ -430,28 +466,31 @@ export default function AdminAgreementDetailsPage() {
                                         }
                                     }}
                                     disabled={isRegenerating}
-                                    className="w-full px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 flex items-center justify-center gap-2 disabled:opacity-50"
+                                    className="w-full px-5 py-3.5 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-xl hover:from-teal-700 hover:to-cyan-700 flex items-center justify-center gap-2 font-bold shadow-xl hover:shadow-2xl transition-all disabled:opacity-50"
                                 >
-                                    {isRegenerating ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+                                    {isRegenerating ? <Loader2 size={18} className="animate-spin" /> : <RefreshCw size={18} />}
                                     {isRegenerating ? 'Regenerating...' : 'Regenerate PDF'}
                                 </button>
                                 {(agreement.status === 'PENDING_LANDLORD' || agreement.status === 'PENDING_TENANT') && (
-                                    <button className="w-full px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 flex items-center justify-center gap-2">
-                                        <Send size={16} />
+                                    <button className="w-full px-5 py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl hover:from-amber-600 hover:to-orange-600 flex items-center justify-center gap-2 font-bold shadow-xl hover:shadow-2xl transition-all">
+                                        <Send size={18} />
                                         Send Reminder
                                     </button>
                                 )}
                                 <Link
                                     href={`/property/${agreement.lease.property.id}`}
-                                    className="w-full px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 flex items-center justify-center gap-2"
+                                    className="w-full px-5 py-3.5 bg-slate-200 text-slate-700 rounded-xl hover:bg-slate-300 flex items-center justify-center gap-2 font-bold shadow-lg hover:shadow-xl transition-all"
                                 >
-                                    <Home size={16} />
+                                    <Building size={18} />
                                     View Property
                                 </Link>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                {/* Bottom spacing for mobile nav */}
+                <div className="h-24 md:hidden"></div>
             </div>
         </ContentWrapper>
     )
