@@ -1,5 +1,6 @@
 const { prisma } = require('../../config/database');
 const pdfGenerationService = require('../../services/pdfGeneration.service');
+const notificationService = require('../../services/notification.service');
 
 class BookingsService {
   /**
@@ -235,6 +236,20 @@ class BookingsService {
     } catch (emailError) {
       console.error('❌ Error sending booking emails:', emailError.message);
       // Don't fail the booking if email fails
+    }
+
+    // 🔔 Send notification to landlord about new rental application
+    try {
+      await notificationService.notifyRentalApplication({
+        landlordId: property.ownerId,
+        tenantName: booking.tenant.name || booking.tenant.firstName || 'A tenant',
+        propertyTitle: booking.property.title,
+        leaseId: booking.id,
+      });
+      console.log('🔔 Notification sent to landlord about new rental application');
+    } catch (notifError) {
+      console.error('❌ Error sending notification:', notifError.message);
+      // Don't fail the booking if notification fails
     }
 
     return booking;

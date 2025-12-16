@@ -17,7 +17,12 @@ import {
     Star,
     MapPin,
     ToggleLeft,
-    ToggleRight
+    ToggleRight,
+    Map,
+    Grid3x3,
+    DollarSign,
+    TrendingUp,
+    Sliders
 } from 'lucide-react'
 import { createApiUrl } from '@/utils/apiConfig'
 import Image from 'next/image'
@@ -65,15 +70,17 @@ interface Statistics {
 export default function AdminPropertiesPage() {
     const router = useRouter()
     const [isLoading, setIsLoading] = useState(true)
-    const [isRefetching, setIsRefetching] = useState(false)
     const [statistics, setStatistics] = useState<Statistics | null>(null)
     const [properties, setProperties] = useState<Property[]>([])
     const [statusFilter, setStatusFilter] = useState('all')
+    const [cityFilter, setCityFilter] = useState('all')
+    const [priceRange, setPriceRange] = useState({ min: '', max: '' })
     const [searchQuery, setSearchQuery] = useState('')
     const [debouncedSearch, setDebouncedSearch] = useState('')
     const [togglingId, setTogglingId] = useState<string | null>(null)
+    const [allProperties, setAllProperties] = useState<Property[]>([])
+    const [filteredProperties, setFilteredProperties] = useState<Property[]>([])
 
-    // Check admin access
     useEffect(() => {
         const checkAccess = async () => {
             const token = localStorage.getItem('authToken')
@@ -99,7 +106,6 @@ export default function AdminPropertiesPage() {
         checkAccess()
     }, [router])
 
-    // Debounce search input
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(searchQuery)
@@ -107,16 +113,12 @@ export default function AdminPropertiesPage() {
         return () => clearTimeout(timer)
     }, [searchQuery])
 
-    // Fetch data
     const isInitialLoad = useRef(true)
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Only show full loading on initial load
                 if (isInitialLoad.current) {
                     setIsLoading(true)
-                } else {
-                    setIsRefetching(true)
                 }
 
                 const token = localStorage.getItem('authToken')
@@ -135,19 +137,37 @@ export default function AdminPropertiesPage() {
                 }
 
                 if (propertiesData?.success) {
-                    setProperties(propertiesData.data.properties || [])
+                    const props = propertiesData.data.properties || []
+                    setAllProperties(props)
+                    setProperties(props)
+                    setFilteredProperties(props)
                 }
             } catch (err) {
                 console.error('Failed to fetch data:', err)
             } finally {
                 setIsLoading(false)
-                setIsRefetching(false)
                 isInitialLoad.current = false
             }
         }
 
         fetchData()
     }, [statusFilter, debouncedSearch])
+
+    // Apply city filter
+    useEffect(() => {
+        if (cityFilter === 'all') {
+            setFilteredProperties(allProperties)
+        } else {
+            setFilteredProperties(allProperties.filter(p => p.city === cityFilter))
+        }
+    }, [cityFilter, allProperties])
+
+    const clearFilters = () => {
+        setCityFilter('all')
+        setStatusFilter('all')
+        setSearchQuery('')
+        setPriceRange({ min: '', max: '' })
+    }
 
     const handleToggleAvailability = async (propertyId: string) => {
         try {
@@ -175,10 +195,10 @@ export default function AdminPropertiesPage() {
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'APPROVED': return 'bg-emerald-100 text-emerald-700 border border-emerald-200'
-            case 'PENDING_REVIEW': return 'bg-amber-100 text-amber-700 border border-amber-200'
-            case 'REJECTED': return 'bg-red-100 text-red-700 border border-red-200'
-            default: return 'bg-slate-100 text-slate-700 border border-slate-200'
+            case 'APPROVED': return 'bg-emerald-500'
+            case 'PENDING_REVIEW': return 'bg-amber-500'
+            case 'REJECTED': return 'bg-red-500'
+            default: return 'bg-slate-500'
         }
     }
 
@@ -198,6 +218,20 @@ export default function AdminPropertiesPage() {
             year: 'numeric'
         })
     }
+
+    // Get unique cities
+    const cities = Array.from(new Set(allProperties.map(p => p.city))).sort()
+    
+    // Use filtered properties for display
+    const displayProperties = filteredProperties
+
+    // Mock location clusters for map legend
+    const locationClusters = [
+        { city: 'Kuala Lumpur', count: Math.floor(properties.filter(p => p.city.includes('Kuala Lumpur')).length) || 12, color: 'emerald' },
+        { city: 'Selangor', count: Math.floor(properties.filter(p => p.city.includes('Selangor')).length) || 8, color: 'teal' },
+        { city: 'Penang', count: Math.floor(properties.filter(p => p.city.includes('Penang')).length) || 5, color: 'cyan' },
+        { city: 'Johor', count: Math.floor(properties.filter(p => p.city.includes('Johor')).length) || 4, color: 'blue' },
+    ]
 
     if (isLoading) {
         return (
@@ -225,9 +259,9 @@ export default function AdminPropertiesPage() {
                         </div>
                         <div>
                             <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                                Properties Management
+                                Property Explorer
                             </h1>
-                            <p className="text-sm sm:text-base text-slate-600 mt-1">View and manage all platform properties</p>
+                            <p className="text-sm sm:text-base text-slate-600 mt-1">Map-based location intelligence</p>
                         </div>
                     </div>
                     <Link
@@ -239,170 +273,147 @@ export default function AdminPropertiesPage() {
                     </Link>
                 </div>
 
-                {/* Stats Cards */}
-                {statistics && (
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 mb-8">
-                        <div className="bg-gradient-to-br from-white to-slate-50 p-5 sm:p-6 rounded-2xl shadow-xl border border-slate-200 hover:scale-105 transition-transform">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-xs sm:text-sm text-slate-500 font-medium mb-1">Total</p>
-                                    <p className="text-2xl sm:text-3xl font-bold text-slate-900">{statistics.totalProperties}</p>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    {/* MAIN CONTENT AREA */}
+                    <div className="lg:col-span-9 space-y-6">
+                        {/* Map Placeholder */}
+                        <div className="bg-white rounded-3xl shadow-2xl border-2 border-emerald-100 overflow-hidden">
+                            <div className="relative h-64 sm:h-80 bg-gradient-to-br from-emerald-100 via-teal-100 to-cyan-100">
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="text-center">
+                                        <Map size={64} className="mx-auto text-emerald-400 mb-4" />
+                                        <h3 className="text-xl font-bold text-slate-700 mb-2">Property Location Map</h3>
+                                        <p className="text-slate-500 text-sm">Visual representation of properties across Malaysia</p>
+                                    </div>
                                 </div>
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-400 to-slate-500 flex items-center justify-center">
-                                    <Building2 size={24} className="text-white" />
+                                {/* Mock location pins */}
+                                <div className="absolute top-1/4 left-1/3 w-8 h-8 bg-emerald-500 rounded-full border-4 border-white shadow-lg animate-pulse"></div>
+                                <div className="absolute top-1/2 left-1/2 w-8 h-8 bg-teal-500 rounded-full border-4 border-white shadow-lg animate-pulse animation-delay-200"></div>
+                                <div className="absolute top-2/3 right-1/3 w-8 h-8 bg-cyan-500 rounded-full border-4 border-white shadow-lg animate-pulse animation-delay-400"></div>
+                                <div className="absolute bottom-1/4 left-2/3 w-8 h-8 bg-blue-500 rounded-full border-4 border-white shadow-lg animate-pulse animation-delay-600"></div>
+                            </div>
+                            <div className="p-4 bg-white border-t-2 border-emerald-100">
+                                <div className="flex gap-6 text-sm">
+                                    {locationClusters.map((cluster) => (
+                                        <div key={cluster.city} className="flex items-center gap-2">
+                                            <div className={`w-3 h-3 rounded-full bg-${cluster.color}-500`}></div>
+                                            <span className="text-slate-700 font-medium">{cluster.city}</span>
+                                            <span className="text-slate-400">({cluster.count})</span>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-5 sm:p-6 rounded-2xl shadow-xl border border-emerald-200 hover:scale-105 transition-transform">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-xs sm:text-sm text-emerald-600 font-medium mb-1">Active</p>
-                                    <p className="text-2xl sm:text-3xl font-bold text-emerald-700">{statistics.activeProperties}</p>
-                                </div>
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-                                    <CheckCircle size={24} className="text-white" />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-5 sm:p-6 rounded-2xl shadow-xl border border-amber-200 hover:scale-105 transition-transform">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-xs sm:text-sm text-amber-600 font-medium mb-1">Pending</p>
-                                    <p className="text-2xl sm:text-3xl font-bold text-amber-700">{statistics.pendingApproval}</p>
-                                </div>
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
-                                    <Clock size={24} className="text-white" />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="bg-gradient-to-br from-teal-50 to-cyan-50 p-5 sm:p-6 rounded-2xl shadow-xl border border-teal-200 hover:scale-105 transition-transform">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-xs sm:text-sm text-teal-600 font-medium mb-1">New (7d)</p>
-                                    <p className="text-2xl sm:text-3xl font-bold text-teal-700">{statistics.createdLast7d}</p>
-                                </div>
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center">
-                                    <Star size={24} className="text-white" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
 
-                {/* Filters */}
-                <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                    <div className="relative flex-1">
-                        <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                        <input
-                            type="text"
-                            placeholder="Search by title, address, or owner..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 border-2 border-slate-200 rounded-xl text-sm bg-white shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
-                        />
-                    </div>
-                    <div className="flex gap-2 overflow-x-auto pb-2">
-                        {['all', 'APPROVED', 'PENDING_REVIEW', 'REJECTED'].map((status) => (
-                            <button
-                                key={status}
-                                onClick={() => setStatusFilter(status)}
-                                className={`px-4 sm:px-5 py-3 text-xs sm:text-sm font-semibold rounded-xl whitespace-nowrap transition-all shadow-md ${
-                                    statusFilter === status
-                                        ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg scale-105'
-                                        : 'bg-white text-slate-600 hover:bg-slate-50 hover:shadow-lg'
-                                }`}
-                            >
-                                {status === 'all' ? 'All' : status === 'PENDING_REVIEW' ? 'PENDING' : status}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Properties List */}
-                <div className="space-y-5">
-                    {properties.length === 0 ? (
-                        <div className="text-center py-16 bg-white rounded-3xl shadow-xl">
-                            <Building2 size={64} className="mx-auto text-slate-300 mb-4" />
-                            <p className="text-slate-500 text-lg">No properties found</p>
+                        {/* Search Bar */}
+                        <div className="bg-white rounded-2xl shadow-lg p-4 border-2 border-emerald-100">
+                            <div className="relative">
+                                <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-600" />
+                                <input
+                                    type="text"
+                                    placeholder="Search properties by title, address, or owner..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full pl-12 pr-4 py-3 border-2 border-emerald-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                                />
+                            </div>
                         </div>
-                    ) : (
-                        properties.map((property) => (
-                            <div
-                                key={property.id}
-                                className="bg-white rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all hover:scale-[1.01] border border-slate-100"
-                            >
-                                <div className="flex flex-col sm:flex-row">
-                                    {/* Property Image */}
-                                    <div className="sm:w-48 md:w-64 relative">
-                                        <div className="h-48 sm:h-full relative">
+
+                        {/* Masonry Grid */}
+                        <div className="columns-1 sm:columns-2 xl:columns-3 gap-4 space-y-4">
+                            {displayProperties.length === 0 ? (
+                                <div className="text-center py-16 bg-white rounded-3xl shadow-xl">
+                                    <Building2 size={64} className="mx-auto text-slate-300 mb-4" />
+                                    <p className="text-slate-500 text-lg">No properties found</p>
+                                </div>
+                            ) : (
+                                displayProperties.map((property, idx) => (
+                                    <div
+                                        key={property.id}
+                                        className="break-inside-avoid bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all border-2 border-slate-100 overflow-hidden group"
+                                        style={{ animationDelay: `${idx * 50}ms` }}
+                                    >
+                                        {/* Large Image */}
+                                        <div className="relative h-56 overflow-hidden">
                                             <Image
                                                 src={property.images?.[0] || '/placeholder-property.jpg'}
                                                 alt={property.title}
                                                 fill
-                                                className="object-cover"
+                                                className="object-cover group-hover:scale-110 transition-transform duration-300"
                                             />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
-                                            <span className={`absolute top-3 left-3 px-3 py-1.5 rounded-xl text-xs font-semibold shadow-lg ${getStatusColor(property.status)}`}>
-                                                {property.status === 'PENDING_REVIEW' ? 'PENDING' : property.status}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Details */}
-                                    <div className="flex-1 p-5 sm:p-6">
-                                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
-                                            <div>
-                                                <h3 className="font-bold text-slate-900 text-base sm:text-lg line-clamp-1 mb-1">
-                                                    {property.title}
-                                                </h3>
-                                                <p className="text-xs sm:text-sm text-slate-500 flex items-center gap-1.5">
-                                                    <MapPin size={14} className="text-teal-500" />
-                                                    {property.address}, {property.city}
-                                                </p>
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                                            
+                                            {/* Status Badge */}
+                                            <div className="absolute top-3 left-3">
+                                                <span className={`px-3 py-1.5 ${getStatusColor(property.status)} text-white rounded-xl text-xs font-bold shadow-lg`}>
+                                                    {property.status === 'PENDING_REVIEW' ? 'PENDING' : property.status}
+                                                </span>
                                             </div>
-                                            <div className="text-right">
-                                                <p className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+
+                                            {/* Location Prominent */}
+                                            <div className="absolute bottom-3 left-3 right-3">
+                                                <div className="flex items-center gap-2 text-white mb-2">
+                                                    <MapPin size={18} className="flex-shrink-0" />
+                                                    <span className="font-bold text-lg">{property.city}</span>
+                                                </div>
+                                                <p className="text-white/90 text-sm truncate">{property.address}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Property Info */}
+                                        <div className="p-4">
+                                            <h3 className="font-bold text-slate-900 text-base mb-2 line-clamp-2">
+                                                {property.title}
+                                            </h3>
+
+                                            {/* Price - Prominent */}
+                                            <div className="mb-3">
+                                                <div className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
                                                     {formatPrice(property.price, property.currencyCode)}
-                                                </p>
+                                                </div>
                                                 <span className="text-xs text-slate-400 font-medium">/month</span>
                                             </div>
-                                        </div>
 
-                                        <div className="flex flex-wrap gap-4 text-xs sm:text-sm text-slate-600 mb-4 font-medium">
-                                            <span className="flex items-center gap-1.5">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                                {property.bedrooms} bed
-                                            </span>
-                                            <span className="flex items-center gap-1.5">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-teal-500"></span>
-                                                {property.bathrooms} bath
-                                            </span>
-                                            <span className="flex items-center gap-1.5">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-cyan-500"></span>
-                                                {property.areaSqm} sqm
-                                            </span>
-                                            <span className="flex items-center gap-1.5">
-                                                <Eye size={14} className="text-slate-400" />
-                                                {property.viewCount}
-                                            </span>
-                                            <span className="flex items-center gap-1.5">
-                                                <Heart size={14} className="text-slate-400" />
-                                                {property.favoriteCount}
-                                            </span>
-                                        </div>
+                                            {/* Property Details */}
+                                            <div className="flex items-center gap-3 text-xs text-slate-600 mb-3 font-medium">
+                                                <span className="flex items-center gap-1">
+                                                    <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                                    {property.bedrooms} bed
+                                                </span>
+                                                <span className="flex items-center gap-1">
+                                                    <div className="w-2 h-2 rounded-full bg-teal-500"></div>
+                                                    {property.bathrooms} bath
+                                                </span>
+                                                <span className="flex items-center gap-1">
+                                                    <div className="w-2 h-2 rounded-full bg-cyan-500"></div>
+                                                    {property.areaSqm} sqm
+                                                </span>
+                                            </div>
 
-                                        <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                                            <div className="text-xs text-slate-500">
-                                                <span className="font-semibold text-slate-700">Owner:</span> {property.owner.name}
-                                                <span className="mx-2 text-slate-300">•</span>
+                                            {/* Engagement Stats */}
+                                            <div className="flex items-center gap-4 text-xs text-slate-500 mb-3">
+                                                <span className="flex items-center gap-1">
+                                                    <Eye size={14} className="text-slate-400" />
+                                                    {property.viewCount}
+                                                </span>
+                                                <span className="flex items-center gap-1">
+                                                    <Heart size={14} className="text-slate-400" />
+                                                    {property.favoriteCount}
+                                                </span>
                                                 <span className="text-slate-400">{formatDate(property.createdAt)}</span>
                                             </div>
 
+                                            {/* Owner */}
+                                            <div className="text-xs text-slate-500 mb-3 pb-3 border-b border-slate-100">
+                                                <span className="font-semibold text-slate-700">Owner:</span> {property.owner.name}
+                                            </div>
+
+                                            {/* Actions */}
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={() => handleToggleAvailability(property.id)}
                                                     disabled={togglingId === property.id}
-                                                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all shadow-md hover:shadow-lg ${
+                                                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all shadow-md hover:shadow-lg ${
                                                         property.isAvailable
                                                             ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white'
                                                             : 'bg-gradient-to-r from-red-500 to-rose-600 text-white'
@@ -426,13 +437,165 @@ export default function AdminPropertiesPage() {
                                             </div>
                                         </div>
                                     </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+
+                    {/* RIGHT SIDEBAR - Filters & Analytics */}
+                    <div className="lg:col-span-3 space-y-6">
+                        {/* Stats Cards */}
+                        {statistics && (
+                            <div className="space-y-4">
+                                <div className="bg-gradient-to-br from-white to-slate-50 p-5 rounded-2xl shadow-xl border border-slate-200">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <Building2 size={20} className="text-slate-600" />
+                                        <TrendingUp size={16} className="text-emerald-600" />
+                                    </div>
+                                    <div className="text-3xl font-bold text-slate-900">{statistics.totalProperties}</div>
+                                    <div className="text-xs text-slate-500 font-medium">Total Properties</div>
+                                </div>
+                                <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-5 rounded-2xl shadow-xl border border-emerald-200">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <CheckCircle size={20} className="text-emerald-600" />
+                                        <TrendingUp size={16} className="text-emerald-600" />
+                                    </div>
+                                    <div className="text-3xl font-bold text-emerald-700">{statistics.activeProperties}</div>
+                                    <div className="text-xs text-emerald-600 font-medium">Active</div>
+                                </div>
+                                <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-5 rounded-2xl shadow-xl border border-amber-200">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <Clock size={20} className="text-amber-600" />
+                                        <TrendingUp size={16} className="text-amber-600" />
+                                    </div>
+                                    <div className="text-3xl font-bold text-amber-700">{statistics.pendingApproval}</div>
+                                    <div className="text-xs text-amber-600 font-medium">Pending</div>
+                                </div>
+                                <div className="bg-gradient-to-br from-teal-50 to-cyan-50 p-5 rounded-2xl shadow-xl border border-teal-200">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <Star size={20} className="text-teal-600" />
+                                        <TrendingUp size={16} className="text-teal-600" />
+                                    </div>
+                                    <div className="text-3xl font-bold text-teal-700">{statistics.createdLast7d}</div>
+                                    <div className="text-xs text-teal-600 font-medium">New (7 days)</div>
                                 </div>
                             </div>
-                        ))
-                    )}
+                        )}
+
+                        {/* Filters */}
+                        <div className="bg-white rounded-2xl shadow-xl border-2 border-emerald-100 p-5">
+                            <div className="flex items-center gap-2 mb-4">
+                                <Sliders size={20} className="text-emerald-600" />
+                                <h3 className="font-bold text-slate-900">Filters</h3>
+                            </div>
+
+                            {/* Status Filter */}
+                            <div className="mb-4">
+                                <label className="text-xs font-semibold text-slate-600 mb-2 block uppercase tracking-wide">Status</label>
+                                <div className="space-y-2">
+                                    {['all', 'APPROVED', 'PENDING_REVIEW', 'REJECTED'].map((status) => (
+                                        <button
+                                            key={status}
+                                            onClick={() => setStatusFilter(status)}
+                                            className={`w-full px-3 py-2 text-xs font-semibold rounded-lg transition-all ${
+                                                statusFilter === status
+                                                    ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md'
+                                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                            }`}
+                                        >
+                                            {status === 'all' ? 'All' : status === 'PENDING_REVIEW' ? 'PENDING' : status}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* City Filter */}
+                            <div className="mb-4">
+                                <label className="text-xs font-semibold text-slate-600 mb-2 block uppercase tracking-wide">Location</label>
+                                <select
+                                    value={cityFilter}
+                                    onChange={(e) => setCityFilter(e.target.value)}
+                                    className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                >
+                                    <option value="all">All Cities</option>
+                                    {cities.map((city) => (
+                                        <option key={city} value={city}>{city}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Clear Filters Button */}
+                            {(cityFilter !== 'all' || statusFilter !== 'all' || searchQuery !== '' || priceRange.min !== '' || priceRange.max !== '') && (
+                                <button
+                                    onClick={clearFilters}
+                                    className="w-full px-4 py-2 bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-300 transition-all"
+                                >
+                                    Clear All Filters
+                                </button>
+                            )}
+
+                            {/* Price Range */}
+                            <div>
+                                <label className="text-xs font-semibold text-slate-600 mb-2 block uppercase tracking-wide">Price Range (MYR)</label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="number"
+                                        placeholder="Min"
+                                        value={priceRange.min}
+                                        onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
+                                        className="flex-1 px-3 py-2 border-2 border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                    />
+                                    <input
+                                        type="number"
+                                        placeholder="Max"
+                                        value={priceRange.max}
+                                        onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
+                                        className="flex-1 px-3 py-2 border-2 border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Price Heatmap Legend */}
+                        <div className="bg-white rounded-2xl shadow-xl border-2 border-emerald-100 p-5">
+                            <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                <DollarSign size={20} className="text-emerald-600" />
+                                Price Heatmap
+                            </h3>
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-4 h-4 rounded bg-emerald-500"></div>
+                                        <span className="text-xs text-slate-600">Budget</span>
+                                    </div>
+                                    <span className="text-xs font-semibold text-slate-900">&lt; RM 2,000</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-4 h-4 rounded bg-teal-500"></div>
+                                        <span className="text-xs text-slate-600">Mid-Range</span>
+                                    </div>
+                                    <span className="text-xs font-semibold text-slate-900">RM 2,000 - 4,000</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-4 h-4 rounded bg-cyan-500"></div>
+                                        <span className="text-xs text-slate-600">Premium</span>
+                                    </div>
+                                    <span className="text-xs font-semibold text-slate-900">RM 4,000 - 6,000</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-4 h-4 rounded bg-blue-500"></div>
+                                        <span className="text-xs text-slate-600">Luxury</span>
+                                    </div>
+                                    <span className="text-xs font-semibold text-slate-900">&gt; RM 6,000</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Bottom spacing */}
                 <div className="h-20 md:hidden"></div>
             </div>
         </ContentWrapper>

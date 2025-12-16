@@ -251,6 +251,7 @@ const agreementRoutes = require('./routes/agreement.routes');
 const adminAgreementsRoutes = require('./routes/admin.agreements.routes');
 const adminPropertiesRoutes = require('./routes/admin.properties.routes');
 const adminUsersRoutes = require('./routes/admin.users.routes');
+const notificationRoutes = require('./routes/notifications.routes');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -266,6 +267,7 @@ app.use('/api/agreements', agreementRoutes);
 app.use('/api/admin/agreements', adminAgreementsRoutes);
 app.use('/api/admin/properties', adminPropertiesRoutes);
 app.use('/api/admin/users', adminUsersRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 /**
  * @swagger

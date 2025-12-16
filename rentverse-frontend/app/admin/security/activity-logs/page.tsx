@@ -348,42 +348,56 @@ export default function ActivityLogsDashboard() {
                     </div>
                 )}
 
-                {/* 7-Day Login Trend */}
+                {/* 7-Day Login Histogram */}
                 <div className="bg-white rounded-3xl shadow-xl p-6 mb-8 border border-emerald-100">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl">
                             <TrendingUp className="w-5 h-5 text-white" />
                         </div>
-                        <h3 className="text-xl font-semibold text-slate-900">7-Day Login Trend</h3>
+                        <h3 className="text-xl font-semibold text-slate-900">7-Day Login Histogram</h3>
                     </div>
-                    <div className="space-y-4">
-                        {trends.map((day) => (
-                            <div key={day.date} className="flex items-center gap-4">
-                                <span className="w-32 text-sm font-medium text-slate-700">
-                                    {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                                </span>
-                                <div className="flex-1 flex h-8 rounded-xl overflow-hidden bg-slate-100 shadow-inner">
-                                    <div
-                                        className="bg-gradient-to-r from-emerald-500 to-teal-500 transition-all"
-                                        style={{ width: `${day.total > 0 ? (day.success / day.total) * 100 : 0}%` }}
-                                    />
-                                    <div
-                                        className="bg-gradient-to-r from-red-500 to-rose-500 transition-all"
-                                        style={{ width: `${day.total > 0 ? (day.failed / day.total) * 100 : 0}%` }}
-                                    />
+                    <div className="h-64 flex items-end justify-between gap-2 px-4">
+                        {trends.map((day) => {
+                            const maxValue = Math.max(...trends.map(t => t.total), 1);
+                            const successHeight = (day.success / maxValue) * 100;
+                            const failedHeight = (day.failed / maxValue) * 100;
+                            
+                            return (
+                                <div key={day.date} className="flex-1 flex flex-col items-center gap-2">
+                                    <div className="w-full flex flex-col justify-end h-56 gap-1">
+                                        {/* Success Bar */}
+                                        <div className="w-full flex flex-col items-center">
+                                            <span className="text-xs font-bold text-emerald-600 mb-1">{day.success}</span>
+                                            <div 
+                                                className="w-full bg-gradient-to-t from-emerald-500 to-teal-400 rounded-t-lg shadow-lg transition-all hover:scale-105"
+                                                style={{ height: `${successHeight}%`, minHeight: day.success > 0 ? '8px' : '0px' }}
+                                            />
+                                        </div>
+                                        {/* Failed Bar */}
+                                        <div className="w-full flex flex-col items-center">
+                                            <div 
+                                                className="w-full bg-gradient-to-t from-red-500 to-rose-400 rounded-t-lg shadow-lg transition-all hover:scale-105"
+                                                style={{ height: `${failedHeight}%`, minHeight: day.failed > 0 ? '8px' : '0px' }}
+                                            />
+                                            <span className="text-xs font-bold text-red-600 mt-1">{day.failed}</span>
+                                        </div>
+                                    </div>
+                                    <div className="text-xs font-medium text-slate-600 text-center">
+                                        {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}
+                                        <div className="text-xs text-slate-400">
+                                            {new Date(day.date).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })}
+                                        </div>
+                                    </div>
                                 </div>
-                                <span className="w-28 text-sm font-semibold text-slate-700 text-right">
-                                    <span className="text-emerald-600">{day.success}</span> / <span className="text-red-600">{day.failed}</span>
-                                </span>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
-                    <div className="flex gap-8 mt-6 pt-4 border-t border-slate-100">
+                    <div className="flex gap-8 mt-6 pt-4 border-t border-slate-100 justify-center">
                         <span className="flex items-center gap-2 text-sm font-medium">
-                            <span className="w-4 h-4 bg-gradient-to-r from-emerald-500 to-teal-500 rounded" /> Success
+                            <span className="w-4 h-4 bg-gradient-to-r from-emerald-500 to-teal-500 rounded" /> Success Logins
                         </span>
                         <span className="flex items-center gap-2 text-sm font-medium">
-                            <span className="w-4 h-4 bg-gradient-to-r from-red-500 to-rose-500 rounded" /> Failed
+                            <span className="w-4 h-4 bg-gradient-to-r from-red-500 to-rose-500 rounded" /> Failed Logins
                         </span>
                     </div>
                 </div>
@@ -408,7 +422,6 @@ export default function ActivityLogsDashboard() {
                                 <tr>
                                     <th className="text-left px-6 py-4 font-semibold text-slate-700">Time</th>
                                     <th className="text-left px-6 py-4 font-semibold text-slate-700">User</th>
-                                    <th className="text-left px-6 py-4 font-semibold text-slate-700">IP Address</th>
                                     <th className="text-left px-6 py-4 font-semibold text-slate-700">Device</th>
                                     <th className="text-center px-6 py-4 font-semibold text-slate-700">Status</th>
                                     <th className="text-center px-6 py-4 font-semibold text-slate-700">Risk Score</th>
@@ -422,7 +435,6 @@ export default function ActivityLogsDashboard() {
                                             <div className="font-semibold text-slate-900">{login.user?.email || 'Unknown'}</div>
                                             <div className="text-xs text-slate-500 mt-0.5">{login.user?.firstName} {login.user?.lastName}</div>
                                         </td>
-                                        <td className="px-6 py-4 text-slate-700 font-mono text-xs">{login.ipAddress}</td>
                                         <td className="px-6 py-4 text-slate-700">
                                             <div className="font-medium">{login.browser}</div>
                                             <div className="text-xs text-slate-500">{login.os}</div>

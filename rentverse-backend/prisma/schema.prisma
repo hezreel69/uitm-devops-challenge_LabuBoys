@@ -54,7 +54,12 @@ model User {
   
   // MFA (Multi-Factor Authentication) fields
   mfaEnabled       Boolean           @default(true)
-  mfaSecret        String?           // For future TOTP-based MFA
+  mfaMethod        String?           @default("EMAIL") // EMAIL or TOTP
+  mfaSecret        String?           // For TOTP-based MFA (encrypted)
+  totpEnabled      Boolean           @default(false)
+  totpVerified     Boolean           @default(false)
+  totpSecret       String?           // Encrypted TOTP secret
+  backupCodes      String[]          @default([]) // Encrypted backup codes
   lastLoginAt      DateTime?
   loginAttempts    Int               @default(0)
   lockedUntil      DateTime?
@@ -81,6 +86,7 @@ model User {
   loginHistory     LoginHistory[]
   devices          UserDevice[]
   securityAlerts   SecurityAlert[]
+  notifications    Notification[]
 
   @@map("users")
 }
@@ -174,6 +180,24 @@ model SecurityAlert {
   @@index([type])
   @@index([createdAt])
   @@map("security_alerts")
+}
+
+/// User notifications for rental activities
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String   // RENTAL_APPLICATION, AGREEMENT_SIGNED_TENANT, AGREEMENT_SIGNED_LANDLORD
+  title     String
+  message   String
+  link      String?  // Optional link to navigate to
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+  @@map("notifications")
 }
 
 

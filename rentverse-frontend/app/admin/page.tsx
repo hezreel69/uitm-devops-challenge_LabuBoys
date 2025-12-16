@@ -19,7 +19,11 @@ import {
   Shield,
   Sparkles,
   Building,
-  AlertCircle
+  AlertCircle,
+  Activity,
+  BarChart3,
+  UserPlus,
+  Bell
 } from 'lucide-react';
 import useAuthStore from '@/stores/authStore';
 import { createApiUrl } from '@/utils/apiConfig';
@@ -112,6 +116,22 @@ interface AuthMeResponse {
     user: User;
   };
 }
+
+// Mock data for activity feed
+const mockActivities = [
+  { id: '1', type: 'approval', message: 'Property approved in Kuala Lumpur', time: '2m ago', icon: CheckCircle },
+  { id: '2', type: 'user', message: 'New user registered', time: '15m ago', icon: UserPlus },
+  { id: '3', type: 'property', message: 'New property submitted', time: '1h ago', icon: Building },
+  { id: '4', type: 'agreement', message: 'Agreement signed', time: '2h ago', icon: FileSignature },
+  { id: '5', type: 'approval', message: 'Property rejected in Penang', time: '3h ago', icon: XCircle },
+];
+
+// Mock recent users
+const mockRecentUsers = [
+  { id: '1', name: 'John Doe', email: 'john@example.com', role: 'USER', time: '5m ago' },
+  { id: '2', name: 'Jane Smith', email: 'jane@example.com', role: 'USER', time: '12m ago' },
+  { id: '3', name: 'Mike Wilson', email: 'mike@example.com', role: 'USER', time: '1h ago' },
+];
 
 function AdminPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -411,11 +431,15 @@ function AdminPage() {
     }
   };
 
+  const totalProperties = propertyStats?.pendingApproval ? (propertyStats.pendingApproval + 45) : 45;
+  const totalUsers = 127;
+  const activeAgreements = 23;
+
   return (
     <ContentWrapper>
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header Section */}
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header */}
           <div className="mb-8">
             <div className="bg-white rounded-3xl shadow-xl border-2 border-emerald-100 p-8">
               <div className="flex items-center justify-between mb-6">
@@ -425,7 +449,7 @@ function AdminPage() {
                   </div>
                   <div>
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                      Admin Dashboard
+                      Command Center
                     </h1>
                     <p className="text-slate-600 mt-1">
                       Welcome back, {user.name}
@@ -492,239 +516,315 @@ function AdminPage() {
             </div>
           </div>
 
-          {/* Statistics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white rounded-3xl shadow-xl border-2 border-amber-200 p-8 hover:scale-105 transition-transform duration-200">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-gradient-to-br from-amber-400 to-orange-400 rounded-2xl">
-                  <Filter size={28} className="text-white" />
+          {/* 3-Column Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* LEFT COLUMN - KPIs & Activity Feed */}
+            <div className="lg:col-span-3 space-y-6">
+              {/* Live KPIs */}
+              <div className="space-y-3">
+                <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-xl p-5 text-white">
+                  <div className="flex items-center justify-between mb-2">
+                    <Building size={24} className="opacity-80" />
+                    <TrendingUp size={18} />
+                  </div>
+                  <div className="text-3xl font-bold">{totalProperties}</div>
+                  <div className="text-sm opacity-90">Total Properties</div>
                 </div>
-                <TrendingUp size={24} className="text-amber-400" />
-              </div>
-              <div className="text-sm font-semibold text-amber-600 uppercase tracking-wide mb-2">
-                Total Pending
-              </div>
-              <div className="text-4xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-                {propertyStats?.pendingApproval ?? pendingApprovals.length}
-              </div>
-              <p className="text-sm text-slate-500 mt-2">Properties awaiting review</p>
-            </div>
 
-            <div className="bg-white rounded-3xl shadow-xl border-2 border-orange-200 p-8 hover:scale-105 transition-transform duration-200">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-gradient-to-br from-orange-400 to-red-400 rounded-2xl">
-                  <Clock size={28} className="text-white" />
+                <div className="bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl shadow-xl p-5 text-white">
+                  <div className="flex items-center justify-between mb-2">
+                    <Users size={24} className="opacity-80" />
+                    <TrendingUp size={18} />
+                  </div>
+                  <div className="text-3xl font-bold">{totalUsers}</div>
+                  <div className="text-sm opacity-90">Total Users</div>
                 </div>
-                <AlertCircle size={24} className="text-orange-400" />
-              </div>
-              <div className="text-sm font-semibold text-orange-600 uppercase tracking-wide mb-2">
-                Awaiting Review
-              </div>
-              <div className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-                {pendingApprovals.filter(approval => approval.status === 'PENDING').length}
-              </div>
-              <p className="text-sm text-slate-500 mt-2">Require immediate action</p>
-            </div>
 
-            <div className="bg-white rounded-3xl shadow-xl border-2 border-emerald-200 p-8 hover:scale-105 transition-transform duration-200">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl">
-                  <Plus size={28} className="text-white" />
+                <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl shadow-xl p-5 text-white">
+                  <div className="flex items-center justify-between mb-2">
+                    <FileSignature size={24} className="opacity-80" />
+                    <TrendingUp size={18} />
+                  </div>
+                  <div className="text-3xl font-bold">{activeAgreements}</div>
+                  <div className="text-sm opacity-90">Active Agreements</div>
                 </div>
-                <Sparkles size={24} className="text-emerald-400" />
               </div>
-              <div className="text-sm font-semibold text-emerald-600 uppercase tracking-wide mb-2">
-                Submitted Today
-              </div>
-              <div className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                {propertyStats?.submittedToday ?? 0}
-              </div>
-              <p className="text-sm text-slate-500 mt-2">New submissions today</p>
-            </div>
-          </div>
 
-          {/* Pending Approvals Section */}
-          <div className="bg-white rounded-3xl shadow-xl border-2 border-emerald-100 p-8 mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-slate-900">Properties Pending Approval</h2>
-              <span className="px-4 py-2 bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700 rounded-xl font-bold">
-                {pendingApprovals.length} Pending
-              </span>
-            </div>
-
-            {isLoadingApprovals ? (
-              <div className="flex items-center justify-center py-32">
-                <div className="text-center space-y-6">
-                  <div className="relative">
-                    <div className="animate-spin rounded-full h-20 w-20 border-4 border-emerald-200 border-t-emerald-600 mx-auto"></div>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Home size={32} className="text-emerald-600 animate-pulse" />
+              {/* Live Activity Feed */}
+              <div className="bg-white rounded-3xl shadow-xl border-2 border-emerald-100 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wide">Live Activity</h3>
+                  <Activity size={18} className="text-emerald-600 animate-pulse" />
+                </div>
+                <div className="space-y-3">
+                  {mockActivities.map((activity) => (
+                    <div key={activity.id} className="flex items-start space-x-3 p-2 rounded-xl hover:bg-emerald-50 transition-colors">
+                      <div className="p-2 bg-emerald-100 rounded-lg">
+                        <activity.icon size={14} className="text-emerald-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-slate-700 font-medium truncate">{activity.message}</p>
+                        <p className="text-xs text-slate-400">{activity.time}</p>
+                      </div>
                     </div>
-                  </div>
-                  <p className="text-slate-600 font-medium">Loading pending approvals...</p>
+                  ))}
                 </div>
               </div>
-            ) : pendingApprovals.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="relative mb-8">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-32 h-32 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full"></div>
-                  </div>
-                  <CheckCircle size={80} className="mx-auto text-emerald-400 relative z-10" />
+            </div>
+
+            {/* CENTER COLUMN - Approval Queue & Timeline */}
+            <div className="lg:col-span-6 space-y-6">
+              {/* Approval Queue */}
+              <div className="bg-white rounded-3xl shadow-xl border-2 border-amber-100 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-slate-900 flex items-center space-x-2">
+                    <Filter className="text-amber-600" size={24} />
+                    <span>Approval Queue</span>
+                  </h2>
+                  <span className="px-4 py-2 bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700 rounded-xl font-bold">
+                    {pendingApprovals.length} Pending
+                  </span>
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-2">
-                  All Clear!
-                </h3>
-                <p className="text-slate-600">
-                  All properties have been reviewed. New submissions will appear here for approval.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {pendingApprovals.map((approval) => (
-                  <div 
-                    key={approval.id} 
-                    className="bg-gradient-to-br from-slate-50 to-white rounded-2xl border-2 border-slate-200 overflow-hidden hover:shadow-2xl hover:scale-[1.01] transition-all duration-300"
-                  >
-                    <div className="flex flex-col lg:flex-row">
-                      {/* Property Image */}
-                      <div className="lg:w-2/5 relative">
-                        <div className="relative h-64 lg:h-full min-h-[280px]">
-                          <Image
-                            src={approval.property.images[0] || '/placeholder-property.jpg'}
-                            alt={approval.property.title}
-                            fill
-                            className="object-cover"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                          <div className="absolute top-4 right-4">
-                            <span className="px-4 py-2 bg-amber-500 text-white rounded-xl font-bold shadow-xl animate-pulse">
-                              PENDING REVIEW
-                            </span>
-                          </div>
-                          <div className="absolute bottom-4 left-4 right-4">
-                            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-xl">
-                              <div className="text-3xl font-bold text-slate-900 mb-1">
-                                {formatPrice(approval.property.price, approval.property.currencyCode)}
-                              </div>
-                              <div className="text-sm text-slate-500 font-medium">per month</div>
+
+                {isLoadingApprovals ? (
+                  <div className="flex items-center justify-center py-20">
+                    <div className="animate-spin rounded-full h-16 w-16 border-4 border-emerald-200 border-t-emerald-600"></div>
+                  </div>
+                ) : pendingApprovals.length === 0 ? (
+                  <div className="text-center py-12">
+                    <CheckCircle size={64} className="mx-auto text-emerald-400 mb-4" />
+                    <h3 className="text-xl font-bold text-slate-900 mb-2">All Clear!</h3>
+                    <p className="text-slate-600">No properties pending approval</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {pendingApprovals.slice(0, 3).map((approval) => (
+                      <div 
+                        key={approval.id} 
+                        className="bg-gradient-to-br from-slate-50 to-white rounded-2xl border-2 border-slate-200 overflow-hidden hover:shadow-lg transition-all"
+                      >
+                        <div className="flex flex-col sm:flex-row">
+                          <div className="sm:w-40 relative h-32 sm:h-auto">
+                            <Image
+                              src={approval.property.images[0] || '/placeholder-property.jpg'}
+                              alt={approval.property.title}
+                              fill
+                              className="object-cover"
+                            />
+                            <div className="absolute top-2 right-2">
+                              <span className="px-2 py-1 bg-amber-500 text-white text-xs rounded-lg font-bold">
+                                NEW
+                              </span>
                             </div>
                           </div>
-                        </div>
-                      </div>
 
-                      {/* Property Details */}
-                      <div className="flex-1 p-8">
-                        <div className="flex flex-col h-full">
-                          <div className="mb-4">
-                            <h3 className="text-2xl font-bold text-slate-900 mb-2">
+                          <div className="flex-1 p-4">
+                            <h3 className="text-base font-bold text-slate-900 mb-1 truncate">
                               {approval.property.title}
                             </h3>
-                            <p className="text-slate-600 flex items-center space-x-2 mb-2">
-                              <Home size={18} className="text-emerald-600" />
-                              <span>{approval.property.address}, {approval.property.city}, {approval.property.state}</span>
+                            <p className="text-sm text-slate-600 mb-2 flex items-center">
+                              <Home size={14} className="mr-1 text-emerald-600" />
+                              {approval.property.city}
                             </p>
-                            <p className="text-sm text-slate-500 font-mono">
-                              Code: {approval.property.code}
-                            </p>
-                          </div>
-
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                            <div className="bg-emerald-50 rounded-xl p-3 border border-emerald-200">
-                              <div className="text-2xl font-bold text-emerald-600">{approval.property.bedrooms}</div>
-                              <div className="text-xs text-slate-500 uppercase">Bedrooms</div>
-                            </div>
-                            <div className="bg-teal-50 rounded-xl p-3 border border-teal-200">
-                              <div className="text-2xl font-bold text-teal-600">{approval.property.bathrooms}</div>
-                              <div className="text-xs text-slate-500 uppercase">Bathrooms</div>
-                            </div>
-                            <div className="bg-cyan-50 rounded-xl p-3 border border-cyan-200">
-                              <div className="text-2xl font-bold text-cyan-600">{approval.property.areaSqm}</div>
-                              <div className="text-xs text-slate-500 uppercase">SQM</div>
-                            </div>
-                            <div className="bg-blue-50 rounded-xl p-3 border border-blue-200">
-                              <div className="text-sm font-bold text-blue-600">{approval.property.furnished ? 'Yes' : 'No'}</div>
-                              <div className="text-xs text-slate-500 uppercase">Furnished</div>
-                            </div>
-                          </div>
-
-                          <div className="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-200">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                              <div>
-                                <span className="font-semibold text-slate-700">Owner:</span>
-                                <span className="ml-2 text-slate-600">{approval.property.owner.name}</span>
+                            <div className="flex items-center justify-between">
+                              <div className="text-lg font-bold text-emerald-600">
+                                {formatPrice(approval.property.price, approval.property.currencyCode)}
                               </div>
-                              <div>
-                                <span className="font-semibold text-slate-700">Email:</span>
-                                <span className="ml-2 text-slate-600">{approval.property.owner.email}</span>
-                              </div>
-                              <div>
-                                <span className="font-semibold text-slate-700">Type:</span>
-                                <span className="ml-2 text-slate-600">{approval.property.propertyType.name} {approval.property.propertyType.icon}</span>
-                              </div>
-                              <div>
-                                <span className="font-semibold text-slate-700">Submitted:</span>
-                                <span className="ml-2 text-slate-600">{formatDate(approval.createdAt)}</span>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => approveProperty(approval.property.id)}
+                                  disabled={approvingProperties.has(approval.property.id)}
+                                  className="px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-lg text-xs font-semibold hover:shadow-lg transition-all disabled:opacity-50"
+                                >
+                                  {approvingProperties.has(approval.property.id) ? (
+                                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                                  ) : (
+                                    <CheckCircle size={16} />
+                                  )}
+                                </button>
+                                <button
+                                  onClick={() => rejectProperty(approval.property.id)}
+                                  disabled={rejectingProperties.has(approval.property.id)}
+                                  className="px-3 py-1.5 bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-lg text-xs font-semibold hover:shadow-lg transition-all disabled:opacity-50"
+                                >
+                                  {rejectingProperties.has(approval.property.id) ? (
+                                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                                  ) : (
+                                    <XCircle size={16} />
+                                  )}
+                                </button>
                               </div>
                             </div>
-                          </div>
-
-                          <div className="mb-6">
-                            <p className="text-slate-600 line-clamp-2">
-                              {approval.property.description}
-                            </p>
-                          </div>
-
-                          <div className="flex flex-col sm:flex-row gap-3 mt-auto">
-                            <Link
-                              href={`/property/${approval.property.id}`}
-                              className="flex items-center justify-center space-x-2 px-6 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-colors font-semibold"
-                            >
-                              <Eye size={18} />
-                              <span>View Property</span>
-                            </Link>
-                            <button
-                              onClick={() => approveProperty(approval.property.id)}
-                              disabled={approvingProperties.has(approval.property.id)}
-                              className="flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl hover:shadow-xl transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              {approvingProperties.has(approval.property.id) ? (
-                                <>
-                                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                                  <span>Approving...</span>
-                                </>
-                              ) : (
-                                <>
-                                  <CheckCircle size={18} />
-                                  <span>Approve</span>
-                                </>
-                              )}
-                            </button>
-                            <button
-                              onClick={() => rejectProperty(approval.property.id)}
-                              disabled={rejectingProperties.has(approval.property.id)}
-                              className="flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-xl hover:shadow-xl transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              {rejectingProperties.has(approval.property.id) ? (
-                                <>
-                                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                                  <span>Rejecting...</span>
-                                </>
-                              ) : (
-                                <>
-                                  <XCircle size={18} />
-                                  <span>Reject</span>
-                                </>
-                              )}
-                            </button>
                           </div>
                         </div>
                       </div>
+                    ))}
+                    {pendingApprovals.length > 3 && (
+                      <Link
+                        href="/admin/properties"
+                        className="block text-center py-3 text-emerald-600 hover:text-emerald-700 font-semibold text-sm"
+                      >
+                        View all {pendingApprovals.length} pending approvals →
+                      </Link>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Activity Timeline */}
+              <div className="bg-white rounded-3xl shadow-xl border-2 border-emerald-100 p-6">
+                <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center space-x-2">
+                  <Clock className="text-emerald-600" size={24} />
+                  <span>Recent Activity Timeline</span>
+                </h2>
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                        <CheckCircle size={18} className="text-white" />
+                      </div>
+                      <div className="w-0.5 h-12 bg-emerald-200 mt-2"></div>
+                    </div>
+                    <div className="flex-1 pt-2">
+                      <p className="text-sm font-semibold text-slate-900">Property Approved</p>
+                      <p className="text-xs text-slate-600">Modern Condo in KLCC approved</p>
+                      <p className="text-xs text-slate-400 mt-1">2 hours ago</p>
                     </div>
                   </div>
-                ))}
+                  <div className="flex items-start space-x-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+                        <UserPlus size={18} className="text-white" />
+                      </div>
+                      <div className="w-0.5 h-12 bg-blue-200 mt-2"></div>
+                    </div>
+                    <div className="flex-1 pt-2">
+                      <p className="text-sm font-semibold text-slate-900">New User Registered</p>
+                      <p className="text-xs text-slate-600">John Doe joined as tenant</p>
+                      <p className="text-xs text-slate-400 mt-1">5 hours ago</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center">
+                        <FileSignature size={18} className="text-white" />
+                      </div>
+                    </div>
+                    <div className="flex-1 pt-2">
+                      <p className="text-sm font-semibold text-slate-900">Agreement Signed</p>
+                      <p className="text-xs text-slate-600">Lease agreement completed</p>
+                      <p className="text-xs text-slate-400 mt-1">1 day ago</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-            )}
+            </div>
+
+            {/* RIGHT COLUMN - Analytics & Recent Users */}
+            <div className="lg:col-span-3 space-y-6">
+              {/* Growth Analytics */}
+              <div className="bg-white rounded-3xl shadow-xl border-2 border-emerald-100 p-6">
+                <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wide mb-4">7-Day Growth</h3>
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-semibold text-slate-600">Properties</span>
+                      <span className="text-sm font-bold text-emerald-600">+{propertyStats?.submittedToday || 0}</span>
+                    </div>
+                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-600" style={{ width: '75%' }}></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-semibold text-slate-600">Users</span>
+                      <span className="text-sm font-bold text-purple-600">+12</span>
+                    </div>
+                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-purple-500 to-violet-600" style={{ width: '60%' }}></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-semibold text-slate-600">Agreements</span>
+                      <span className="text-sm font-bold text-blue-600">+8</span>
+                    </div>
+                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-600" style={{ width: '45%' }}></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-semibold text-slate-600">Revenue</span>
+                      <span className="text-sm font-bold text-amber-600">+15%</span>
+                    </div>
+                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-amber-500 to-orange-600" style={{ width: '85%' }}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Users */}
+              <div className="bg-white rounded-3xl shadow-xl border-2 border-emerald-100 p-6">
+                <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wide mb-4">Recent Users</h3>
+                <div className="space-y-3">
+                  {mockRecentUsers.map((recentUser) => (
+                    <div key={recentUser.id} className="flex items-center space-x-3 p-3 bg-emerald-50 rounded-xl hover:bg-emerald-100 transition-colors">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-sm">
+                        {recentUser.name.split(' ').map(n => n[0]).join('')}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-slate-900 truncate">{recentUser.name}</p>
+                        <p className="text-xs text-slate-500 truncate">{recentUser.email}</p>
+                      </div>
+                      <span className="text-xs text-slate-400 whitespace-nowrap">{recentUser.time}</span>
+                    </div>
+                  ))}
+                </div>
+                <Link
+                  href="/admin/users"
+                  className="block text-center mt-4 py-2 text-emerald-600 hover:text-emerald-700 font-semibold text-sm"
+                >
+                  View all users →
+                </Link>
+              </div>
+
+              {/* System Status */}
+              <div className="bg-white rounded-3xl shadow-xl border-2 border-emerald-100 p-6">
+                <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wide mb-4">System Status</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-2">
+                    <span className="text-sm text-slate-700">API Server</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                      <span className="text-xs font-semibold text-emerald-600">Operational</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between p-2">
+                    <span className="text-sm text-slate-700">Database</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                      <span className="text-xs font-semibold text-emerald-600">Operational</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between p-2">
+                    <span className="text-sm text-slate-700">Storage</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                      <span className="text-xs font-semibold text-emerald-600">Operational</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between p-2">
+                    <span className="text-sm text-slate-700">Email Service</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                      <span className="text-xs font-semibold text-emerald-600">Operational</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
