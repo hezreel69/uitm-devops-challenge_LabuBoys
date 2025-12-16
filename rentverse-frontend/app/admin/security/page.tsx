@@ -459,21 +459,6 @@ export default function SecurityDashboard() {
           </div>
 
           {/* Risk Analysis Section */}
-          
-          {!riskAnalysis && (
-            <div className="bg-red-100 border border-red-400 p-6 rounded-xl">
-              <h3 className="text-lg font-bold text-red-800 mb-2">Risk Analysis Not Available</h3>
-              <p className="text-sm text-red-600">
-                The risk analysis endpoint is not returning data. Please check:
-              </p>
-              <ul className="list-disc ml-5 mt-2 text-sm text-red-600">
-                <li>Backend server is running</li>
-                <li>API endpoint /api/admin/security/risk-analysis is accessible</li>
-                <li>Check browser console for error messages</li>
-              </ul>
-            </div>
-          )}
-          
           {riskAnalysis && (
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-slate-900 flex items-center space-x-3">
