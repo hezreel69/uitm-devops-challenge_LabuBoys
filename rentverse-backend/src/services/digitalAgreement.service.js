@@ -105,7 +105,7 @@ class DigitalAgreementService {
       where: { id: agreementId },
       include: {
         lease: {
-          include: { landlord: true, tenant: true },
+          include: { landlord: true, tenant: true, property: true },
         },
       },
     });
@@ -165,6 +165,23 @@ class DigitalAgreementService {
       }
     );
 
+    // Send notification to tenant that landlord has signed
+    try {
+      const notificationService = require('./notification.service');
+      await notificationService.createLandlordSignedNotification(
+        agreement.lease.tenantId,
+        userId,
+        agreementId
+      );
+      console.log('🔔 Notification sent to tenant: landlord signed agreement');
+    } catch (notifError) {
+      console.error(
+        '❌ Error sending landlord signed notification:',
+        notifError.message
+      );
+      // Don't fail the signing if notification fails
+    }
+
     return updated;
   }
 
@@ -185,7 +202,7 @@ class DigitalAgreementService {
       where: { id: agreementId },
       include: {
         lease: {
-          include: { landlord: true, tenant: true },
+          include: { landlord: true, tenant: true, property: true },
         },
       },
     });
@@ -240,6 +257,23 @@ class DigitalAgreementService {
       signedAt: timestamp,
     });
     await this.logAuditAction(agreementId, 'COMPLETED', userId, ipAddress);
+
+    // Send notification to landlord that tenant has signed
+    try {
+      const notificationService = require('./notification.service');
+      await notificationService.createTenantSignedNotification(
+        agreement.lease.landlordId,
+        userId,
+        agreementId
+      );
+      console.log('🔔 Notification sent to landlord: tenant signed agreement');
+    } catch (notifError) {
+      console.error(
+        '❌ Error sending tenant signed notification:',
+        notifError.message
+      );
+      // Don't fail the signing if notification fails
+    }
 
     // 📧 Send agreement completed emails to both parties
     try {

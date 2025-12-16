@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import ContentWrapper from '@/components/ContentWrapper'
+import AdminNav from '@/components/AdminNav'
 import useAuthStore from '@/stores/authStore'
 import {
     FileSignature,
@@ -272,29 +273,7 @@ export default function AdminAgreementsPage() {
                 </div>
             )}
             <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-                {/* Header */}
-                <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-3xl shadow-2xl p-6 sm:p-8 mb-8">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div className="flex items-center space-x-4">
-                            <div className="bg-white/20 backdrop-blur-sm p-3 rounded-2xl">
-                                <FileSignature size={32} className="text-white" />
-                            </div>
-                            <div>
-                                <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">
-                                    Agreement Pipeline
-                                </h1>
-                                <p className="text-emerald-50 text-sm sm:text-base">Kanban-style workflow management</p>
-                            </div>
-                        </div>
-                        <Link
-                            href="/admin"
-                            className="flex items-center space-x-2 px-5 py-2.5 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-xl transition-all shadow-lg hover:shadow-xl"
-                        >
-                            <span className="font-medium">Back to Dashboard</span>
-                            <ChevronRight size={18} />
-                        </Link>
-                    </div>
-                </div>
+                <AdminNav />
 
                 {/* Stats Overview */}
                 {statistics && (

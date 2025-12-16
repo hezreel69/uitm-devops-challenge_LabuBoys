@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import ContentWrapper from '@/components/ContentWrapper'
+import AdminNav from '@/components/AdminNav'
 import {
     Users,
     ShieldCheck,
@@ -220,27 +221,7 @@ export default function AdminUsersPage() {
     return (
         <ContentWrapper>
             <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-8">
-                    <div className="flex items-center space-x-4">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-xl">
-                            <Users size={32} className="text-white" />
-                        </div>
-                        <div>
-                            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                                User Analytics Hub
-                            </h1>
-                            <p className="text-sm sm:text-base text-slate-600 mt-1">Segmentation & lifecycle insights</p>
-                        </div>
-                    </div>
-                    <Link
-                        href="/admin"
-                        className="flex items-center space-x-2 px-4 py-2 bg-white rounded-xl shadow-md hover:shadow-lg transition-all text-sm text-slate-700 hover:text-emerald-600"
-                    >
-                        <span>Back to Dashboard</span>
-                        <ChevronRight size={18} />
-                    </Link>
-                </div>
+                <AdminNav />
 
                 {/* User Segment Cards */}
                 {statistics && (

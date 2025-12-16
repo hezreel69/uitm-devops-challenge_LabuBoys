@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import ContentWrapper from '@/components/ContentWrapper'
 import useAuthStore from '@/stores/authStore'
 import useCurrentUser from '@/hooks/useCurrentUser'
@@ -25,6 +25,7 @@ function MobileMenuPage() {
     const router = useRouter()
     const { isLoggedIn, logout } = useAuthStore()
     const { user } = useCurrentUser()
+    const [unreadCount, setUnreadCount] = useState(0)
 
     // Redirect to auth if not logged in
     useEffect(() => {
@@ -32,6 +33,44 @@ function MobileMenuPage() {
             router.push('/auth')
         }
     }, [isLoggedIn, router])
+
+    // Fetch unread notification count
+    useEffect(() => {
+        const fetchUnreadCount = async () => {
+            if (!isLoggedIn) return
+
+            try {
+                const token = localStorage.getItem('authToken')
+                if (!token) return
+
+                const response = await fetch(
+                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/notifications/unread-count`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                        },
+                    }
+                )
+
+                if (response.ok) {
+                    const data = await response.json()
+                    setUnreadCount(data.data?.count || 0)
+                } else {
+                    console.error('Failed to fetch unread count:', response.status)
+                }
+            } catch (error) {
+                console.error('Error fetching unread count:', error)
+            }
+        }
+
+        // Fetch on mount
+        fetchUnreadCount()
+
+        // Poll every 30 seconds for real-time updates
+        const interval = setInterval(fetchUnreadCount, 30000)
+
+        return () => clearInterval(interval)
+    }, [isLoggedIn])
 
     const handleLogout = () => {
         logout()
@@ -116,6 +155,8 @@ function MobileMenuPage() {
                             <div className="divide-y divide-slate-100">
                                 {section.items.map((item, itemIndex) => {
                                     const IconComponent = item.icon
+                                    const showBadge = unreadCount > 0 && (item.label === 'My Listings' || item.label === 'My Agreements')
+                                    
                                     return (
                                         <Link
                                             key={itemIndex}
@@ -126,7 +167,14 @@ function MobileMenuPage() {
                                                 <IconComponent size={20} className="text-slate-400" />
                                                 <span className="font-medium text-slate-700 text-sm sm:text-base">{item.label}</span>
                                             </div>
-                                            <ChevronRight size={18} className="text-slate-300" />
+                                            <div className="flex items-center space-x-2">
+                                                {showBadge && (
+                                                    <div className="flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-emerald-500 rounded-full">
+                                                        <span className="text-xs font-semibold text-white">{unreadCount}</span>
+                                                    </div>
+                                                )}
+                                                <ChevronRight size={18} className="text-slate-300" />
+                                            </div>
                                         </Link>
                                     )
                                 })}

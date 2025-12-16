@@ -2,7 +2,7 @@ const { prisma } = require('../config/database');
 
 class NotificationService {
   /**
-   * Create a new notification
+   * Create a new notification with duplicate prevention
    * @param {Object} params - Notification parameters
    * @param {string} params.userId - ID of the user to notify
    * @param {string} params.type - Type of notification
@@ -13,6 +13,27 @@ class NotificationService {
    */
   async createNotification({ userId, type, title, message, link = null }) {
     try {
+      // Check if notification already exists (within last 24 hours)
+      const existing = await prisma.notification.findFirst({
+        where: {
+          userId,
+          type,
+          link,
+          createdAt: {
+            gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
+          },
+        },
+      });
+
+      if (existing) {
+        console.log('Duplicate notification prevented:', {
+          userId,
+          type,
+          link,
+        });
+        return { success: true, data: existing, duplicate: true };
+      }
+
       const notification = await prisma.notification.create({
         data: {
           userId,
@@ -219,7 +240,7 @@ class NotificationService {
     }
   }
 
-  // Notification type helpers
+  // Role-based notification helpers
   async notifyRentalApplication({
     landlordId,
     tenantName,
@@ -258,6 +279,136 @@ class NotificationService {
       message: `${landlordName} has signed the rental agreement for "${propertyTitle}"`,
       link: `/my-agreements`,
     });
+  }
+
+  /**
+   * Create rental application notification for landlord
+   * @param {string} landlordId - Landlord user ID
+   * @param {string} tenantId - Tenant user ID
+   * @param {string} propertyId - Property ID
+   * @param {string} leaseId - Lease ID
+   */
+  async createRentalApplicationNotification(
+    landlordId,
+    tenantId,
+    propertyId,
+    leaseId
+  ) {
+    try {
+      // Get property and tenant details
+      const [property, tenant] = await Promise.all([
+        prisma.property.findUnique({
+          where: { id: propertyId },
+          select: { title: true },
+        }),
+        prisma.user.findUnique({
+          where: { id: tenantId },
+          select: { name: true, firstName: true },
+        }),
+      ]);
+
+      const tenantName = tenant?.name || tenant?.firstName || 'A tenant';
+      const propertyTitle = property?.title || 'your property';
+
+      return this.createNotification({
+        userId: landlordId,
+        type: 'RENTAL_APPLICATION',
+        title: 'New Rental Application',
+        message: `${tenantName} has applied to rent "${propertyTitle}"`,
+        link: `/my-agreements`,
+      });
+    } catch (error) {
+      console.error('Error creating rental application notification:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Create tenant signed notification for landlord
+   * @param {string} landlordId - Landlord user ID
+   * @param {string} tenantId - Tenant user ID
+   * @param {string} agreementId - Agreement ID
+   */
+  async createTenantSignedNotification(landlordId, tenantId, agreementId) {
+    try {
+      // Get agreement details
+      const agreement = await prisma.rentalAgreement.findUnique({
+        where: { id: agreementId },
+        include: {
+          lease: {
+            include: {
+              property: { select: { title: true } },
+              tenant: { select: { name: true, firstName: true } },
+            },
+          },
+        },
+      });
+
+      if (!agreement) {
+        throw new Error('Agreement not found');
+      }
+
+      const tenantName =
+        agreement.lease.tenant.name ||
+        agreement.lease.tenant.firstName ||
+        'Tenant';
+      const propertyTitle = agreement.lease.property.title;
+
+      return this.createNotification({
+        userId: landlordId,
+        type: 'AGREEMENT_SIGNED_TENANT',
+        title: 'Tenant Signed Agreement',
+        message: `${tenantName} has signed the rental agreement for "${propertyTitle}"`,
+        link: `/my-agreements`,
+      });
+    } catch (error) {
+      console.error('Error creating tenant signed notification:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Create landlord signed notification for tenant
+   * @param {string} tenantId - Tenant user ID
+   * @param {string} landlordId - Landlord user ID
+   * @param {string} agreementId - Agreement ID
+   */
+  async createLandlordSignedNotification(tenantId, landlordId, agreementId) {
+    try {
+      // Get agreement details
+      const agreement = await prisma.rentalAgreement.findUnique({
+        where: { id: agreementId },
+        include: {
+          lease: {
+            include: {
+              property: { select: { title: true } },
+              landlord: { select: { name: true, firstName: true } },
+            },
+          },
+        },
+      });
+
+      if (!agreement) {
+        throw new Error('Agreement not found');
+      }
+
+      const landlordName =
+        agreement.lease.landlord.name ||
+        agreement.lease.landlord.firstName ||
+        'Landlord';
+      const propertyTitle = agreement.lease.property.title;
+
+      return this.createNotification({
+        userId: tenantId,
+        type: 'AGREEMENT_SIGNED_LANDLORD',
+        title: 'Landlord Signed Agreement',
+        message: `${landlordName} has signed the rental agreement for "${propertyTitle}"`,
+        link: `/my-agreements`,
+      });
+    } catch (error) {
+      console.error('Error creating landlord signed notification:', error);
+      return { success: false, error: error.message };
+    }
   }
 }
 

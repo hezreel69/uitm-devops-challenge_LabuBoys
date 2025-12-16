@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import ContentWrapper from '@/components/ContentWrapper';
+import AdminNav from '@/components/AdminNav';
 import { 
   Plus, 
   Filter, 
@@ -439,82 +440,7 @@ function AdminPage() {
     <ContentWrapper>
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 py-8">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="mb-8">
-            <div className="bg-white rounded-3xl shadow-xl border-2 border-emerald-100 p-8">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl">
-                    <Shield size={32} className="text-white" />
-                  </div>
-                  <div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                      Command Center
-                    </h1>
-                    <p className="text-slate-600 mt-1">
-                      Welcome back, {user.name}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => window.location.reload()}
-                  className="hidden md:flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl hover:shadow-xl transition-all duration-200 font-semibold"
-                >
-                  <RefreshCw size={18} />
-                  <span>Refresh</span>
-                </button>
-              </div>
-
-              {/* Navigation Tabs */}
-              <div className="flex gap-3 overflow-x-auto pb-2">
-                <Link 
-                  href="/admin" 
-                  className="flex-shrink-0 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-semibold shadow-lg"
-                >
-                  <span className="flex items-center space-x-2">
-                    <Sparkles size={18} />
-                    <span>Dashboard</span>
-                  </span>
-                </Link>
-                <Link 
-                  href="/admin/agreements" 
-                  className="flex-shrink-0 px-6 py-3 bg-slate-100 text-slate-600 rounded-xl font-semibold hover:bg-slate-200 transition-colors"
-                >
-                  <span className="flex items-center space-x-2">
-                    <FileSignature size={18} />
-                    <span>Agreements</span>
-                  </span>
-                </Link>
-                <Link 
-                  href="/admin/properties" 
-                  className="flex-shrink-0 px-6 py-3 bg-slate-100 text-slate-600 rounded-xl font-semibold hover:bg-slate-200 transition-colors"
-                >
-                  <span className="flex items-center space-x-2">
-                    <Building size={18} />
-                    <span>Properties</span>
-                  </span>
-                </Link>
-                <Link 
-                  href="/admin/users" 
-                  className="flex-shrink-0 px-6 py-3 bg-slate-100 text-slate-600 rounded-xl font-semibold hover:bg-slate-200 transition-colors"
-                >
-                  <span className="flex items-center space-x-2">
-                    <Users size={18} />
-                    <span>Users</span>
-                  </span>
-                </Link>
-                <Link 
-                  href="/admin/security" 
-                  className="flex-shrink-0 px-6 py-3 bg-slate-100 text-slate-600 rounded-xl font-semibold hover:bg-slate-200 transition-colors"
-                >
-                  <span className="flex items-center space-x-2">
-                    <Shield size={18} />
-                    <span>Security</span>
-                  </span>
-                </Link>
-              </div>
-            </div>
-          </div>
+          <AdminNav />
 
           {/* 3-Column Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

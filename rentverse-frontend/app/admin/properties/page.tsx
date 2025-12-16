@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import ContentWrapper from '@/components/ContentWrapper'
+import AdminNav from '@/components/AdminNav'
 import {
     Building2,
     CheckCircle,
@@ -18,7 +19,6 @@ import {
     MapPin,
     ToggleLeft,
     ToggleRight,
-    Map,
     Grid3x3,
     DollarSign,
     TrendingUp,
@@ -225,14 +225,6 @@ export default function AdminPropertiesPage() {
     // Use filtered properties for display
     const displayProperties = filteredProperties
 
-    // Mock location clusters for map legend
-    const locationClusters = [
-        { city: 'Kuala Lumpur', count: Math.floor(properties.filter(p => p.city.includes('Kuala Lumpur')).length) || 12, color: 'emerald' },
-        { city: 'Selangor', count: Math.floor(properties.filter(p => p.city.includes('Selangor')).length) || 8, color: 'teal' },
-        { city: 'Penang', count: Math.floor(properties.filter(p => p.city.includes('Penang')).length) || 5, color: 'cyan' },
-        { city: 'Johor', count: Math.floor(properties.filter(p => p.city.includes('Johor')).length) || 4, color: 'blue' },
-    ]
-
     if (isLoading) {
         return (
             <ContentWrapper>
@@ -251,60 +243,11 @@ export default function AdminPropertiesPage() {
     return (
         <ContentWrapper>
             <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-8">
-                    <div className="flex items-center space-x-4">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-xl">
-                            <Building2 size={32} className="text-white" />
-                        </div>
-                        <div>
-                            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                                Property Explorer
-                            </h1>
-                            <p className="text-sm sm:text-base text-slate-600 mt-1">Map-based location intelligence</p>
-                        </div>
-                    </div>
-                    <Link
-                        href="/admin"
-                        className="flex items-center space-x-2 px-4 py-2 bg-white rounded-xl shadow-md hover:shadow-lg transition-all text-sm text-slate-700 hover:text-emerald-600"
-                    >
-                        <span>Back to Dashboard</span>
-                        <ChevronRight size={18} />
-                    </Link>
-                </div>
+                <AdminNav />
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     {/* MAIN CONTENT AREA */}
                     <div className="lg:col-span-9 space-y-6">
-                        {/* Map Placeholder */}
-                        <div className="bg-white rounded-3xl shadow-2xl border-2 border-emerald-100 overflow-hidden">
-                            <div className="relative h-64 sm:h-80 bg-gradient-to-br from-emerald-100 via-teal-100 to-cyan-100">
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="text-center">
-                                        <Map size={64} className="mx-auto text-emerald-400 mb-4" />
-                                        <h3 className="text-xl font-bold text-slate-700 mb-2">Property Location Map</h3>
-                                        <p className="text-slate-500 text-sm">Visual representation of properties across Malaysia</p>
-                                    </div>
-                                </div>
-                                {/* Mock location pins */}
-                                <div className="absolute top-1/4 left-1/3 w-8 h-8 bg-emerald-500 rounded-full border-4 border-white shadow-lg animate-pulse"></div>
-                                <div className="absolute top-1/2 left-1/2 w-8 h-8 bg-teal-500 rounded-full border-4 border-white shadow-lg animate-pulse animation-delay-200"></div>
-                                <div className="absolute top-2/3 right-1/3 w-8 h-8 bg-cyan-500 rounded-full border-4 border-white shadow-lg animate-pulse animation-delay-400"></div>
-                                <div className="absolute bottom-1/4 left-2/3 w-8 h-8 bg-blue-500 rounded-full border-4 border-white shadow-lg animate-pulse animation-delay-600"></div>
-                            </div>
-                            <div className="p-4 bg-white border-t-2 border-emerald-100">
-                                <div className="flex gap-6 text-sm">
-                                    {locationClusters.map((cluster) => (
-                                        <div key={cluster.city} className="flex items-center gap-2">
-                                            <div className={`w-3 h-3 rounded-full bg-${cluster.color}-500`}></div>
-                                            <span className="text-slate-700 font-medium">{cluster.city}</span>
-                                            <span className="text-slate-400">({cluster.count})</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
                         {/* Search Bar */}
                         <div className="bg-white rounded-2xl shadow-lg p-4 border-2 border-emerald-100">
                             <div className="relative">
@@ -552,44 +495,6 @@ export default function AdminPropertiesPage() {
                                         onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
                                         className="flex-1 px-3 py-2 border-2 border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                     />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Price Heatmap Legend */}
-                        <div className="bg-white rounded-2xl shadow-xl border-2 border-emerald-100 p-5">
-                            <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                <DollarSign size={20} className="text-emerald-600" />
-                                Price Heatmap
-                            </h3>
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-4 h-4 rounded bg-emerald-500"></div>
-                                        <span className="text-xs text-slate-600">Budget</span>
-                                    </div>
-                                    <span className="text-xs font-semibold text-slate-900">&lt; RM 2,000</span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-4 h-4 rounded bg-teal-500"></div>
-                                        <span className="text-xs text-slate-600">Mid-Range</span>
-                                    </div>
-                                    <span className="text-xs font-semibold text-slate-900">RM 2,000 - 4,000</span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-4 h-4 rounded bg-cyan-500"></div>
-                                        <span className="text-xs text-slate-600">Premium</span>
-                                    </div>
-                                    <span className="text-xs font-semibold text-slate-900">RM 4,000 - 6,000</span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-4 h-4 rounded bg-blue-500"></div>
-                                        <span className="text-xs text-slate-600">Luxury</span>
-                                    </div>
-                                    <span className="text-xs font-semibold text-slate-900">&gt; RM 6,000</span>
                                 </div>
                             </div>
                         </div>

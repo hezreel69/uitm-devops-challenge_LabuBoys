@@ -194,9 +194,9 @@ model Notification {
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  @@index([userId])
-  @@index([read])
-  @@index([createdAt])
+  @@index([userId, read])
+  @@index([userId, type])
+  @@index([type, createdAt])
   @@map("notifications")
 }
 
