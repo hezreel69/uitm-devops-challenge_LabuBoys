@@ -7,7 +7,10 @@ const rateLimit = require('express-rate-limit');
 
 // Shared options for all rate limiters
 const sharedOptions = {
-    validate: { trustProxy: false }, // Suppress IPv6 warning in development
+    validate: { 
+        keyGeneratorIpFallback: false,
+        trustProxy: false
+    },
 };
 
 /**
