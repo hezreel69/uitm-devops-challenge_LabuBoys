@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node:*)",
+      "Bash(curl -s:*)",
+      "Bash(npm run dev)",
+      "Bash(poetry run python:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

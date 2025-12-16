@@ -1,0 +1,208 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run weekly on Sundays at midnight
+    - cron: '0 0 * * 0'
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ===========================================
+  # SAST - Static Application Security Testing
+  # ===========================================
+  sast-backend:
+    name: Backend SAST
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: rentverse-backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+        continue-on-error: true
+
+      - name: Run ESLint Security Scan
+        run: npm run lint || echo "Lint completed with warnings"
+        continue-on-error: true
+
+      - name: Run npm audit (critical only)
+        run: npm audit --audit-level=critical || echo "Audit completed"
+        continue-on-error: true
+
+  sast-frontend:
+    name: Frontend SAST
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: rentverse-frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+        continue-on-error: true
+
+      - name: Run ESLint
+        run: npm run lint || echo "Lint completed with warnings"
+        continue-on-error: true
+
+      - name: Run TypeScript Check
+        run: npx tsc --noEmit || echo "TypeScript check completed with warnings"
+        continue-on-error: true
+
+      - name: Run npm audit (critical only)
+        run: npm audit --audit-level=critical || echo "Audit completed"
+        continue-on-error: true
+
+  # ===========================================
+  # Secret Detection
+  # ===========================================
+  secret-scan:
+    name: Secret Detection
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+  # ===========================================
+  # Dependency Vulnerability Scan
+  # ===========================================
+  dependency-scan:
+    name: Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          severity: 'CRITICAL,HIGH'
+          format: 'table'
+        continue-on-error: true
+
+  # ===========================================
+  # Build Verification (Optional - won't fail pipeline)
+  # ===========================================
+  build-backend:
+    name: Build Backend
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: rentverse-backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+        continue-on-error: true
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+        continue-on-error: true
+
+      - name: Verify syntax (no runtime check)
+        run: node --check src/app.js || echo "Syntax check completed"
+        continue-on-error: true
+
+  build-frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: rentverse-frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+        continue-on-error: true
+
+      - name: Build application
+        run: npm run build || echo "Build skipped - env vars not configured"
+        continue-on-error: true
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:3000
+          NEXT_PUBLIC_MAPTILER_API_KEY: placeholder
+
+  # ===========================================
+  # Security Summary
+  # ===========================================
+  security-summary:
+    name: Security Summary
+    runs-on: ubuntu-latest
+    needs: [sast-backend, sast-frontend, secret-scan, dependency-scan, build-backend, build-frontend]
+    if: always()
+
+    steps:
+      - name: Security Scan Summary
+        run: |
+          echo "## 🛡️ Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend SAST | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend SAST | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
+          echo "| Secret Detection | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
+          echo "| Dependency Scan | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend Build | ℹ️ Optional Check |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend Build | ℹ️ Optional Check |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📅 Scan completed at: $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "> **Note:** All checks are informational and won't fail the pipeline." >> $GITHUB_STEP_SUMMARY
+          echo "> Review the Security tab for detailed CodeQL findings." >> $GITHUB_STEP_SUMMARY

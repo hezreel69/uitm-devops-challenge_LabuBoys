@@ -1,0 +1,580 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+
+/// Master jenis properti (mis: Apartemen, Rumah, Studio).
+/// Dibuat terpisah agar bisa dikelola via admin tanpa redeploy.
+model PropertyType {
+  id          String     @id @default(uuid())
+  code        String     @unique
+  name        String
+  description String?
+  icon        String?    // Icon URL or icon class name
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  properties  Property[]
+
+  @@map("property_types")
+}
+
+/// Master fasilitas/amenitas (mis: AC, Kolam Renang).
+model Amenity {
+  id         String            @id @default(uuid())
+  name       String            @unique
+  category   String?
+  properties PropertyAmenity[]
+
+  @@map("amenities")
+}
+
+/// Akun pengguna (tenant, landlord, admin).
+model User {
+  id               String            @id @default(uuid())
+  email            String            @unique
+  firstName        String            @default("")
+  lastName         String            @default("")
+  name             String            // Computed field (firstName + lastName) for backward compatibility
+  dateOfBirth      DateTime?
+  phone            String?
+  profilePicture   String?           // URL for user's profile picture
+  password         String
+  role             Role              @default(USER)
+  isActive         Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  verifiedAt       DateTime?
+  
+  // MFA (Multi-Factor Authentication) fields
+  mfaEnabled       Boolean           @default(true)
+  mfaSecret        String?           // For future TOTP-based MFA
+  lastLoginAt      DateTime?
+  loginAttempts    Int               @default(0)
+  lockedUntil      DateTime?
+  
+  // OAuth IDs
+  googleId         String?           @unique
+  facebookId       String?           @unique
+  appleId          String?           @unique
+  githubId         String?           @unique
+  twitterId        String?           @unique
+  
+  // Relations
+  otpCodes         OtpCode[]
+  leasesAsLandlord Lease[]           @relation("LandlordLeases")
+  leasesAsTenant   Lease[]           @relation("TenantLeases")
+  approvals        ListingApproval[] @relation("ReviewerApprovals")
+  payments         Payment[]
+  properties       Property[]        @relation("OwnerProperties")
+  propertyViews    PropertyView[]    @relation("PropertyViews")
+  propertyRatings  PropertyRating[]  @relation("PropertyRatings")
+  propertyFavorites PropertyFavorite[] @relation("PropertyFavorites")
+  
+  // Security monitoring relations
+  loginHistory     LoginHistory[]
+  devices          UserDevice[]
+  securityAlerts   SecurityAlert[]
+
+  @@map("users")
+}
+
+/// OTP codes for MFA and verification
+model OtpCode {
+  id          String    @id @default(uuid())
+  userId      String
+  code        String    // Hashed OTP code
+  type        OtpType   @default(LOGIN)
+  expiresAt   DateTime
+  usedAt      DateTime?
+  attempts    Int       @default(0)
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, type])
+  @@index([expiresAt])
+  @@map("otp_codes")
+}
+
+/// Login history for security monitoring and suspicious activity detection
+model LoginHistory {
+  id          String        @id @default(uuid())
+  userId      String
+  ipAddress   String
+  userAgent   String?
+  deviceType  String?       // mobile, desktop, tablet
+  browser     String?
+  os          String?
+  country     String?
+  city        String?
+  success     Boolean       @default(true)
+  failReason  String?       // Reason for failed login
+  riskScore   Int           @default(0)  // 0-100 risk score
+  loginMethod String?       @default("email") // email, google, facebook, github, twitter, apple
+  createdAt   DateTime      @default(now())
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([ipAddress])
+  @@index([createdAt])
+  @@index([loginMethod])
+  @@map("login_history")
+}
+
+/// Known devices for each user
+model UserDevice {
+  id            String    @id @default(uuid())
+  userId        String
+  deviceHash    String    // Hash of device fingerprint
+  deviceName    String?   // User-friendly device name
+  deviceType    String?   // mobile, desktop, tablet
+  browser       String?
+  os            String?
+  ipAddress     String?
+  lastUsedAt    DateTime  @default(now())
+  isTrusted     Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, deviceHash])
+  @@index([userId])
+  @@map("user_devices")
+}
+
+/// Security alert types
+enum AlertType {
+  NEW_DEVICE
+  MULTIPLE_FAILURES
+  ACCOUNT_LOCKED
+  PASSWORD_CHANGED
+  SUSPICIOUS_TIMING
+  NEW_LOCATION
+}
+
+/// Security alerts sent to users
+model SecurityAlert {
+  id          String      @id @default(uuid())
+  userId      String
+  type        AlertType
+  title       String
+  message     String
+  metadata    Json?       // Additional alert data (IP, device, etc.)
+  isRead      Boolean     @default(false)
+  emailSent   Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("security_alerts")
+}
+
+
+/// Listing properti yang ditawarkan (detail fisik, lokasi, harga).
+/// Gambar/Foto disimpan langsung di kolom `images` (array URL).
+model Property {
+  id             String                   @id @default(uuid())
+  title          String
+  description    String?
+  address        String
+  city           String
+  state          String
+  zipCode        String
+  country        String                   @default("MY")
+  price          Decimal                  @db.Decimal(12, 2)
+  currencyCode   String                   @default("MYR")
+  bedrooms       Int                      @default(0)
+  bathrooms      Int                      @default(0)
+  areaSqm        Float?
+  furnished      Boolean                  @default(false)
+  isAvailable    Boolean                  @default(true)
+  /// Kumpulan URL gambar untuk listing ini (urutan = urutan tampilan).
+  images         String[]                 @default([])
+  
+  // Informasi lokasi dan geografis
+  latitude       Float?
+  longitude      Float?
+  placeId        String?
+  geom           Unsupported("geometry")? @map("geom")
+  
+  // Informasi developer/proyek (opsional)
+  projectName    String?
+  developer      String?
+  
+  // Metadata sistem
+  code           String                   @unique
+  status         ListingStatus            @default(PENDING_REVIEW)
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+  
+  // Relasi
+  ownerId        String
+  propertyTypeId String
+  
+  leases         Lease[]
+  approvals      ListingApproval[]
+  predictions    PricePrediction[]
+  views          PropertyView[]
+  ratings        PropertyRating[]
+  favorites      PropertyFavorite[]
+  owner          User                     @relation("OwnerProperties", fields: [ownerId], references: [id], onDelete: Cascade)
+  propertyType   PropertyType             @relation(fields: [propertyTypeId], references: [id])
+  amenities      PropertyAmenity[]
+
+  @@index([latitude, longitude])
+  @@index([city, state, country])
+  @@index([status, isAvailable])
+  @@map("properties")
+}
+
+/// Tabel pivot N:N antara Property dan Amenity.
+model PropertyAmenity {
+  propertyId String
+  amenityId  String
+  amenity    Amenity  @relation(fields: [amenityId], references: [id], onDelete: Cascade)
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@id([propertyId, amenityId])
+  @@map("property_amenities")
+}
+
+/// Log review listing oleh admin (simple audit trail).
+model ListingApproval {
+  id         String         @id @default(uuid())
+  propertyId String         @unique // One approval per property (latest status)
+  reviewerId String?        // Admin yang review
+  status     ApprovalStatus @default(PENDING)
+  notes      String?        // Optional rejection reason
+  reviewedAt DateTime?      // Kapan di-review
+  createdAt  DateTime       @default(now())
+  property   Property       @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  reviewer   User?          @relation("ReviewerApprovals", fields: [reviewerId], references: [id])
+
+  @@index([status])
+  @@map("listing_approvals")
+}
+
+/// Kontrak sewa jangka waktu antara landlord dan tenant.
+model Lease {
+  id              String           @id @default(uuid())
+  startDate       DateTime
+  endDate         DateTime
+  rentAmount      Decimal          @db.Decimal(12, 2)
+  currencyCode    String           @default("MYR")
+  securityDeposit Decimal?         @db.Decimal(12, 2)
+  status          LeaseStatus      @default(PENDING)
+  notes           String?          // Catatan dari user saat booking
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  propertyId      String
+  tenantId        String
+  landlordId      String
+  invoices        Invoice[]
+  landlord        User             @relation("LandlordLeases", fields: [landlordId], references: [id])
+  property        Property         @relation(fields: [propertyId], references: [id])
+  tenant          User             @relation("TenantLeases", fields: [tenantId], references: [id])
+  agreement       RentalAgreement?
+
+  @@index([propertyId, status])
+  @@index([tenantId])
+  @@index([landlordId])
+  @@map("leases")
+}
+
+/// Dokumen tagihan untuk lease (sewa/beban lainnya).
+model Invoice {
+  id           String        @id @default(uuid())
+  leaseId      String
+  type         InvoiceType   @default(RENT)
+  amount       Decimal       @db.Decimal(12, 2)
+  currencyCode String        @default("MYR")
+  dueDate      DateTime
+  status       InvoiceStatus @default(DUE)
+  issuedAt     DateTime      @default(now())
+  paidAt       DateTime?
+  memo         String?
+  lease        Lease         @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  payments     Payment[]
+
+  @@index([leaseId, status, dueDate])
+  @@map("invoices")
+}
+
+/// Pencatatan pembayaran invoice (mendukung cicilan/multi-part).
+model Payment {
+  id        String        @id @default(uuid())
+  invoiceId String
+  amount    Decimal       @db.Decimal(12, 2)
+  method    PaymentMethod @default(BANK_TRANSFER)
+  status    PaymentStatus @default(PENDING)
+  paidAt    DateTime?
+  txnRef    String?
+  createdAt DateTime      @default(now())
+  payerId   String?
+  invoice   Invoice       @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  payer     User?         @relation(fields: [payerId], references: [id])
+
+  @@index([invoiceId, status])
+  @@map("payments")
+}
+
+/// Perjanjian sewa (hasil generate PDF) untuk satu lease.
+/// Enhanced with digital signature validation and access permissions.
+model RentalAgreement {
+  id          String   @id @default(uuid())
+  leaseId     String   @unique
+  pdfUrl      String?  // Cloudinary URL
+  publicId    String?  // Cloudinary public ID untuk delete
+  fileName    String?  // Nama file untuk display
+  fileSize    Int?     // Size dalam bytes
+  generatedAt DateTime @default(now())
+  
+  // Digital Signature Workflow Status
+  status            AgreementStatus  @default(DRAFT)
+  documentHash      String?          // SHA-256 hash of PDF for integrity verification
+  
+  // Landlord Signature
+  landlordSigned    Boolean          @default(false)
+  landlordSignature String?          @db.Text // Base64 canvas signature image
+  landlordSignedAt  DateTime?
+  landlordSignHash  String?          // SHA-256(signature + timestamp + leaseId + userId)
+  landlordIpAddress String?
+  landlordConfirmed Boolean          @default(false) // Checkbox confirmation
+  
+  // Tenant Signature  
+  tenantSigned      Boolean          @default(false)
+  tenantSignature   String?          @db.Text // Base64 canvas signature image
+  tenantSignedAt    DateTime?
+  tenantSignHash    String?          // SHA-256(signature + timestamp + leaseId + userId)
+  tenantIpAddress   String?
+  tenantConfirmed   Boolean          @default(false) // Checkbox confirmation
+  
+  // Workflow Timestamps
+  expiresAt         DateTime?        // Agreement expires if not signed within deadline
+  completedAt       DateTime?        // When both parties signed
+  cancelledAt       DateTime?
+  cancelReason      String?
+  
+  // Current Version
+  currentVersion    Int              @default(1)
+  
+  // Relations
+  lease       Lease                @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  auditLogs   AgreementAuditLog[]
+  versions    AgreementVersion[]
+
+  @@index([status])
+  @@index([leaseId])
+  @@map("rental_agreements")
+}
+
+/// Audit trail for all agreement actions - security compliance
+model AgreementAuditLog {
+  id           String          @id @default(uuid())
+  agreementId  String
+  action       AuditAction
+  performedBy  String?         // userId who performed action
+  ipAddress    String?
+  userAgent    String?
+  metadata     Json?           // Additional action data (e.g., verification result)
+  createdAt    DateTime        @default(now())
+  agreement    RentalAgreement @relation(fields: [agreementId], references: [id], onDelete: Cascade)
+
+  @@index([agreementId])
+  @@index([createdAt])
+  @@index([action])
+  @@map("agreement_audit_logs")
+}
+
+/// Document versioning for tracking changes
+model AgreementVersion {
+  id           String          @id @default(uuid())
+  agreementId  String
+  version      Int
+  pdfUrl       String?
+  documentHash String?         // Hash of this version
+  changedBy    String?         // userId who made changes
+  changeReason String?
+  createdAt    DateTime        @default(now())
+  agreement    RentalAgreement @relation(fields: [agreementId], references: [id], onDelete: Cascade)
+
+  @@unique([agreementId, version])
+  @@index([agreementId])
+  @@map("agreement_versions")
+}
+
+/// Log prediksi harga (input mentah, harga prediksi, confidence, versi model).
+model PricePrediction {
+  id             String    @id @default(uuid())
+  propertyId     String?
+  inputs         Json
+  predictedPrice Decimal   @db.Decimal(12, 2)
+  confidence     Float
+  modelVersion   String
+  createdAt      DateTime  @default(now())
+  property       Property? @relation(fields: [propertyId], references: [id])
+
+  @@index([propertyId, modelVersion])
+  @@map("price_predictions")
+}
+
+/// Log views/kunjungan ke detail property untuk analytics dan tracking popularitas.
+model PropertyView {
+  id         String    @id @default(uuid())
+  propertyId String
+  userId     String?
+  ipAddress  String?
+  userAgent  String?
+  viewedAt   DateTime  @default(now())
+  property   Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  user       User?     @relation("PropertyViews", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([propertyId, viewedAt])
+  @@index([userId])
+  @@map("property_views")
+}
+
+/// Rating dan review property oleh user yang sudah login.
+model PropertyRating {
+  id         String    @id @default(uuid())
+  propertyId String
+  userId     String
+  rating     Int       // 1-5 stars
+  comment    String?   // Optional review text
+  ratedAt    DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  property   Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  user       User      @relation("PropertyRatings", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, userId]) // One rating per user per property
+  @@index([propertyId])
+  @@index([userId])
+  @@map("property_ratings")
+}
+
+/// Favorit property oleh user yang sudah login.
+model PropertyFavorite {
+  id          String    @id @default(uuid())
+  propertyId  String
+  userId      String
+  favoritedAt DateTime  @default(now())
+  property    Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  user        User      @relation("PropertyFavorites", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, userId]) // One favorite per user per property
+  @@index([propertyId])
+  @@index([userId])
+  @@index([userId, favoritedAt]) // For user's favorites list ordered by date
+  @@map("property_favorites")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model spatial_ref_sys {
+  srid      Int     @id
+  auth_name String? @db.VarChar(256)
+  auth_srid Int?
+  srtext    String? @db.VarChar(2048)
+  proj4text String? @db.VarChar(2048)
+}
+
+/// Peran pengguna di sistem.
+enum Role {
+  USER
+  ADMIN
+}
+
+/// Status listing untuk alur publikasi/approval.
+enum ListingStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+}
+
+/// Status approval per-riwayat keputusan admin.
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+/// Status siklus kontrak sewa (simplified).
+enum LeaseStatus {
+  PENDING    // User submit booking, tunggu review owner
+  APPROVED   // Owner setujui booking
+  REJECTED   // Owner tolak booking
+  ACTIVE     // Sewa sedang berlangsung (optional)
+  COMPLETED  // Sewa sudah selesai (optional)
+}
+
+/// Jenis invoice/tagihan dalam sewa.
+enum InvoiceType {
+  RENT
+  DEPOSIT
+  UTILITY
+  OTHER
+}
+
+/// Status invoice (penagihan).
+enum InvoiceStatus {
+  DUE
+  PAID
+  VOID
+  REFUNDED
+}
+
+/// Metode pembayaran yang didukung.
+enum PaymentMethod {
+  BANK_TRANSFER
+  CASH
+  EWALLET
+  CREDIT_CARD
+}
+
+/// Status transaksi pembayaran.
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+/// Jenis OTP untuk MFA dan verifikasi.
+enum OtpType {
+  LOGIN           // OTP for MFA login verification
+  PASSWORD_RESET  // OTP for password reset
+  EMAIL_VERIFY    // OTP for email verification
+}
+
+/// Status workflow untuk digital agreement signing.
+enum AgreementStatus {
+  DRAFT             // Agreement created but not yet sent for signing
+  PENDING_LANDLORD  // Waiting for landlord signature
+  PENDING_TENANT    // Landlord signed, waiting for tenant
+  COMPLETED         // Both parties signed
+  EXPIRED           // Signing deadline passed
+  CANCELLED         // Agreement cancelled by landlord
+}
+
+/// Audit actions for agreement security logging.
+enum AuditAction {
+  CREATED               // Agreement created
+  VIEWED                // Agreement viewed by a party
+  SIGNATURE_REQUESTED   // Signing request sent
+  REMINDER_SENT         // Reminder email sent to pending signer
+  LANDLORD_SIGNED       // Landlord submitted signature
+  TENANT_SIGNED         // Tenant submitted signature
+  COMPLETED             // Both signatures collected
+  EXPIRED               // Agreement expired
+  CANCELLED             // Agreement cancelled
+  DOWNLOADED            // PDF downloaded
+  VERIFICATION_SUCCESS  // Integrity check passed
+  VERIFICATION_FAILED   // Integrity check failed (tamper detected)
+  VERSION_CREATED       // New version of document created
+}

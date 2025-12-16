@@ -1,0 +1,46 @@
+{
+  "name": "rentverse",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build --turbopack",
+    "start": "next start",
+    "lint": "eslint",
+    "type-check": "tsc --noEmit",
+    "security:audit": "pnpm audit --audit-level=moderate",
+    "security:check": "pnpm run lint && pnpm run type-check && pnpm run security:audit",
+    "mobile:build": "move app\\api ..\\api_backup && copy next.config.mobile.ts next.config.ts.bak && copy next.config.mobile.ts next.config.ts && next build && copy next.config.ts.bak next.config.ts && del next.config.ts.bak && move ..\\api_backup app\\api",
+    "mobile:sync": "npx cap sync android",
+    "mobile:open": "npx cap open android",
+    "mobile:run": "npx cap run android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/app": "^8.0.0",
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/status-bar": "^8.0.0",
+    "@maptiler/sdk": "^3.8.0",
+    "clsx": "^2.1.1",
+    "dotenv": "^17.2.2",
+    "lucide-react": "^0.544.0",
+    "next": "16.0.10",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-icons": "^5.5.0",
+    "swiper": "^12.0.1",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.2",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
