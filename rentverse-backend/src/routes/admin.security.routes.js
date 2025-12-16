@@ -457,4 +457,164 @@ router.get('/user/:userId/history', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/admin/security/risk-analysis:
+ *   get:
+ *     summary: Get real-time system risk analysis
+ *     tags: [Admin Security]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: timeWindow
+ *         schema:
+ *           type: integer
+ *         description: Time window in hours (default 24)
+ *     responses:
+ *       200:
+ *         description: System risk analysis with score and recommendations
+ */
+router.get('/risk-analysis', async (req, res) => {
+  try {
+    const riskService = require('../services/riskCalculation.service');
+    const timeWindow = parseInt(req.query.timeWindow) || 24;
+
+    const riskAnalysis = await riskService.calculateSystemRisk(timeWindow);
+
+    res.json({
+      success: true,
+      data: riskAnalysis,
+    });
+  } catch (error) {
+    console.error('Risk analysis error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to calculate risk analysis',
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/admin/security/risky-users:
+ *   get:
+ *     summary: Get list of users with suspicious activity
+ *     tags: [Admin Security]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Maximum number of users to return (default 10)
+ *       - in: query
+ *         name: timeWindow
+ *         schema:
+ *           type: integer
+ *         description: Time window in hours (default 24)
+ *     responses:
+ *       200:
+ *         description: List of risky users with failure rates
+ */
+router.get('/risky-users', async (req, res) => {
+  try {
+    const riskService = require('../services/riskCalculation.service');
+    const limit = Math.min(parseInt(req.query.limit) || 10, 50);
+    const timeWindow = parseInt(req.query.timeWindow) || 24;
+
+    const riskyUsers = await riskService.getTopRiskyUsers(limit, timeWindow);
+
+    res.json({
+      success: true,
+      data: riskyUsers,
+    });
+  } catch (error) {
+    console.error('Risky users error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch risky users',
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/admin/security/flagged-events:
+ *   get:
+ *     summary: Get flagged security events requiring attention
+ *     tags: [Admin Security]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Maximum events to return (default 20)
+ *     responses:
+ *       200:
+ *         description: List of flagged security events
+ */
+router.get('/flagged-events', async (req, res) => {
+  try {
+    const riskService = require('../services/riskCalculation.service');
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+
+    const events = await riskService.getFlaggedEvents(limit);
+
+    res.json({
+      success: true,
+      data: events,
+    });
+  } catch (error) {
+    console.error('Flagged events error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch flagged events',
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/admin/security/auto-respond/{eventId}:
+ *   post:
+ *     summary: Auto-respond to a flagged security event
+ *     tags: [Admin Security]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: eventId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Security alert ID
+ *     responses:
+ *       200:
+ *         description: Auto-response executed successfully
+ */
+router.post('/auto-respond/:eventId', async (req, res) => {
+  try {
+    const riskService = require('../services/riskCalculation.service');
+    const { eventId } = req.params;
+
+    const response = await riskService.autoRespondToEvent(eventId);
+
+    res.json({
+      success: true,
+      message: 'Auto-response executed',
+      data: response,
+    });
+  } catch (error) {
+    console.error('Auto-respond error:', error);
+    res.status(error.message === 'Alert not found' ? 404 : 500).json({
+      success: false,
+      message: error.message || 'Failed to execute auto-response',
+    });
+  }
+});
+
 module.exports = router;

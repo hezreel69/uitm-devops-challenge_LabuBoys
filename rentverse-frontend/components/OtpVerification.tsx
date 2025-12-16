@@ -185,9 +185,9 @@ export default function OtpVerification({
                         </div>
 
                         {/* OTP Input */}
-                        <div className="flex gap-3 mb-6 justify-center">
+                        <div className="flex gap-2 sm:gap-3 mb-6 justify-center w-full max-w-md mx-auto">
                             {otp.map((digit, index) => (
-                                <div key={index} className="relative">
+                                <div key={index} className="relative flex-1 max-w-[60px]">
                                     <input
                                         ref={el => { inputRefs.current[index] = el }}
                                         type="text"
@@ -201,7 +201,7 @@ export default function OtpVerification({
                                         onBlur={() => setFocusedIndex(null)}
                                         disabled={isLoading || isExpired}
                                         className={`
-                                            w-14 h-16 text-center text-2xl font-bold rounded-xl
+                                            w-full h-14 sm:h-16 text-center text-xl sm:text-2xl font-bold rounded-xl
                                             transition-all duration-200 outline-none
                                             ${error
                                                 ? 'border-2 border-red-400 bg-red-50 text-red-600 animate-shake'
