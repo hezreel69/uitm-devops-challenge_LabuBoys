@@ -86,7 +86,10 @@ const auth = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('Auth middleware error:', error);
-    securityLogger.logAuthFailure(req, `Authentication error: ${error.message}`);
+    securityLogger.logAuthFailure(
+      req,
+      `Authentication error: ${error.message}`
+    );
     res.status(401).json({
       success: false,
       message: 'Access denied. Invalid token.',

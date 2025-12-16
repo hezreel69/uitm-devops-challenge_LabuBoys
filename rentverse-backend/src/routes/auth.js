@@ -6,7 +6,12 @@ const { prisma } = require('../config/database');
 const { passport, handleAppleSignIn } = require('../config/passport');
 
 // Security imports (OWASP M5-M6)
-const { authLimiter, strictLimiter, otpLimiter, createAccountLimiter } = require('../middleware/rateLimit');
+const {
+  authLimiter,
+  strictLimiter,
+  otpLimiter,
+  createAccountLimiter,
+} = require('../middleware/rateLimit');
 const { blacklistToken } = require('../services/tokenBlacklist');
 const { securityLogger } = require('../middleware/apiLogger');
 const { auth } = require('../middleware/auth');
@@ -199,7 +204,6 @@ router.post(
         },
       });
 
-
       // Don't auto-login - require user to go through login flow for MFA
       // This ensures all users go through MFA verification after signup
       res.status(201).json({
@@ -267,7 +271,10 @@ router.post(
       });
 
       if (!user || !user.isActive) {
-        securityLogger.logAuthFailure(req, !user ? 'User not found' : 'Account inactive');
+        securityLogger.logAuthFailure(
+          req,
+          !user ? 'User not found' : 'Account inactive'
+        );
         return res.status(401).json({
           success: false,
           message: 'Invalid credentials',
@@ -282,7 +289,10 @@ router.post(
         const remainingMinutes = Math.ceil(
           (lockStatus.lockedUntil - new Date()) / (1000 * 60)
         );
-        securityLogger.logAuthFailure(req, `Account locked (${remainingMinutes} min remaining)`);
+        securityLogger.logAuthFailure(
+          req,
+          `Account locked (${remainingMinutes} min remaining)`
+        );
         return res.status(423).json({
           success: false,
           message: `Account is temporarily locked. Please try again in ${remainingMinutes} minute(s).`,
@@ -306,24 +316,42 @@ router.post(
         });
 
         if (attemptResult.locked) {
-          securityLogger.logAuthFailure(req, 'Account locked after failed attempts');
+          securityLogger.logAuthFailure(
+            req,
+            'Account locked after failed attempts'
+          );
 
           // Send account locked alert
           await securityAlertService.alertAccountLocked(user.id, req.ip);
 
           return res.status(423).json({
             success: false,
-            message: 'Too many failed attempts. Account is temporarily locked for 15 minutes.',
+            message:
+              'Too many failed attempts. Account is temporarily locked for 15 minutes.',
           });
         }
 
         // Check for multiple failures and send alert
-        const { hasSuspiciousActivity, alerts } = await suspiciousActivityService.checkSuspiciousPatterns(user.id, req.ip);
-        if (hasSuspiciousActivity && alerts.some(a => a.type === 'MULTIPLE_FAILURES')) {
-          await securityAlertService.alertMultipleFailures(user.id, attemptResult.attempts, req.ip);
+        const { hasSuspiciousActivity, alerts } =
+          await suspiciousActivityService.checkSuspiciousPatterns(
+            user.id,
+            req.ip
+          );
+        if (
+          hasSuspiciousActivity &&
+          alerts.some(a => a.type === 'MULTIPLE_FAILURES')
+        ) {
+          await securityAlertService.alertMultipleFailures(
+            user.id,
+            attemptResult.attempts,
+            req.ip
+          );
         }
 
-        securityLogger.logAuthFailure(req, `Wrong password (${attemptResult.attemptsRemaining} attempts remaining)`);
+        securityLogger.logAuthFailure(
+          req,
+          `Wrong password (${attemptResult.attemptsRemaining} attempts remaining)`
+        );
         return res.status(401).json({
           success: false,
           message: `Invalid credentials. ${attemptResult.attemptsRemaining} attempt(s) remaining.`,
@@ -381,11 +409,12 @@ router.post(
       });
 
       // Check if this is a new device and send alert
-      const { isNewDevice, device } = await suspiciousActivityService.checkDevice(
-        user.id,
-        req.headers['user-agent'],
-        req.ip
-      );
+      const { isNewDevice, device } =
+        await suspiciousActivityService.checkDevice(
+          user.id,
+          req.headers['user-agent'],
+          req.ip
+        );
       if (isNewDevice && device) {
         await securityAlertService.alertNewDevice(user.id, device, req.ip);
       }
@@ -456,7 +485,9 @@ router.post(
   '/mfa/verify',
   [
     body('sessionToken').notEmpty().withMessage('Session token is required'),
-    body('otp').isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits'),
+    body('otp')
+      .isLength({ min: 6, max: 6 })
+      .withMessage('OTP must be 6 digits'),
   ],
   async (req, res) => {
     try {
@@ -491,7 +522,11 @@ router.post(
       }
 
       // Verify OTP
-      const verifyResult = await otpService.verifyOtp(decoded.userId, otp, 'LOGIN');
+      const verifyResult = await otpService.verifyOtp(
+        decoded.userId,
+        otp,
+        'LOGIN'
+      );
 
       if (!verifyResult.success) {
         securityLogger.logMfaEvent(req, 'VERIFY', false, decoded.userId);
@@ -528,8 +563,14 @@ router.post(
       const { password: _, mfaSecret: __, ...userWithoutPassword } = user;
 
       // Record successful login and check for new device
-      const deviceInfo = suspiciousActivityService.parseUserAgent(req.headers['user-agent']);
-      const deviceCheck = await suspiciousActivityService.checkDevice(user.id, req.headers['user-agent'], req.ip);
+      const deviceInfo = suspiciousActivityService.parseUserAgent(
+        req.headers['user-agent']
+      );
+      const deviceCheck = await suspiciousActivityService.checkDevice(
+        user.id,
+        req.headers['user-agent'],
+        req.ip
+      );
 
       // Record login in history
       await suspiciousActivityService.recordLoginAttempt({
@@ -609,7 +650,8 @@ router.post('/mfa/enable', async (req, res) => {
 
     res.json({
       success: true,
-      message: 'MFA has been enabled for your account. You will need to enter an OTP code on your next login.',
+      message:
+        'MFA has been enabled for your account. You will need to enter an OTP code on your next login.',
     });
   } catch (error) {
     console.error('MFA enable error:', error);
@@ -786,7 +828,10 @@ router.post(
       });
 
       // Generate new OTP
-      const { otp, expiresAt } = await otpService.createOtp(decoded.userId, 'LOGIN');
+      const { otp, expiresAt } = await otpService.createOtp(
+        decoded.userId,
+        'LOGIN'
+      );
 
       // Send OTP via email
       const emailService = require('../services/email.service');
@@ -834,7 +879,9 @@ router.post('/logout', auth, async (req, res) => {
     if (token) {
       // Decode token to get expiration time
       const decoded = jwt.decode(token);
-      const expiresAt = decoded?.exp ? decoded.exp * 1000 : Date.now() + (7 * 24 * 60 * 60 * 1000);
+      const expiresAt = decoded?.exp
+        ? decoded.exp * 1000
+        : Date.now() + 7 * 24 * 60 * 60 * 1000;
 
       // Blacklist the token
       blacklistToken(token, expiresAt);
@@ -843,7 +890,7 @@ router.post('/logout', auth, async (req, res) => {
       securityLogger.logTokenBlacklisted(req, 'User logout');
     }
 
-    // Update last login timestamp  
+    // Update last login timestamp
     await prisma.user.update({
       where: { id: req.user.id },
       data: { lastLoginAt: new Date() },
@@ -1059,9 +1106,13 @@ router.get(
   async (req, res) => {
     try {
       if (!req.user) {
-        const isMobile = req.query.state === 'mobile' || req.headers['user-agent']?.includes('Android');
+        const isMobile =
+          req.query.state === 'mobile' ||
+          req.headers['user-agent']?.includes('Android');
         if (isMobile) {
-          return res.redirect('rentverseclarity://auth/callback?error=oauth_failed');
+          return res.redirect(
+            'rentverseclarity://auth/callback?error=oauth_failed'
+          );
         }
         return res.redirect(
           `${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=oauth_failed`
@@ -1079,30 +1130,41 @@ router.get(
       const suspiciousActivity = require('../services/suspiciousActivity.service');
       const userAgent = req.headers['user-agent'] || 'Unknown';
       const ipAddress = req.ip || req.connection.remoteAddress || '::1';
-      suspiciousActivity.recordLoginAttempt({
-        userId: req.user.id,
-        ipAddress,
-        userAgent,
-        success: true,
-        loginMethod: 'google',
-      }).catch(err => console.error('Failed to record OAuth login:', err));
+      suspiciousActivity
+        .recordLoginAttempt({
+          userId: req.user.id,
+          ipAddress,
+          userAgent,
+          success: true,
+          loginMethod: 'google',
+        })
+        .catch(err => console.error('Failed to record OAuth login:', err));
 
       // Send login notification email (async - don't wait)
       const emailService = require('../services/email.service');
-      const isMobileDevice = userAgent.includes('Android') || userAgent.includes('iPhone');
-      emailService.sendOAuthLoginNotification(
-        req.user.email,
-        'google',
-        req.user.name || req.user.firstName,
-        { device: isMobileDevice ? 'Mobile App' : 'Web Browser' }
-      ).catch(err => console.error('Failed to send login notification email:', err));
+      const isMobileDevice =
+        userAgent.includes('Android') || userAgent.includes('iPhone');
+      emailService
+        .sendOAuthLoginNotification(
+          req.user.email,
+          'google',
+          req.user.name || req.user.firstName,
+          { device: isMobileDevice ? 'Mobile App' : 'Web Browser' }
+        )
+        .catch(err =>
+          console.error('Failed to send login notification email:', err)
+        );
 
       // Check if request is from mobile app
-      const isMobile = req.query.state === 'mobile' || req.headers['user-agent']?.includes('Android');
+      const isMobile =
+        req.query.state === 'mobile' ||
+        req.headers['user-agent']?.includes('Android');
 
       if (isMobile) {
         // Redirect to mobile app using custom URL scheme
-        res.redirect(`rentverseclarity://auth/callback?token=${token}&provider=google`);
+        res.redirect(
+          `rentverseclarity://auth/callback?token=${token}&provider=google`
+        );
       } else {
         // Redirect to web frontend
         res.redirect(
@@ -1111,7 +1173,9 @@ router.get(
       }
     } catch (error) {
       console.error('Google OAuth callback error:', error);
-      const isMobile = req.query.state === 'mobile' || req.headers['user-agent']?.includes('Android');
+      const isMobile =
+        req.query.state === 'mobile' ||
+        req.headers['user-agent']?.includes('Android');
       if (isMobile) {
         res.redirect('rentverseclarity://auth/callback?error=oauth_error');
       } else {
@@ -1623,7 +1687,9 @@ router.post('/oauth/unlink', async (req, res) => {
 router.post(
   '/change-password',
   [
-    body('currentPassword').notEmpty().withMessage('Current password is required'),
+    body('currentPassword')
+      .notEmpty()
+      .withMessage('Current password is required'),
     body('newPassword')
       .isLength({ min: 6 })
       .withMessage('New password must be at least 6 characters'),
@@ -1675,7 +1741,10 @@ router.post(
       }
 
       // Verify current password
-      const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+      const isPasswordValid = await bcrypt.compare(
+        currentPassword,
+        user.password
+      );
       if (!isPasswordValid) {
         return res.status(400).json({
           success: false,

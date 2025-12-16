@@ -48,7 +48,8 @@ class PDFGenerationService {
       const uploadOptions = {
         public_id: publicId,
         resource_type: 'raw',
-        upload_preset: process.env.CLOUDINARY_UPLOAD_PRESET || 'rentverse_unsigned',
+        upload_preset:
+          process.env.CLOUDINARY_UPLOAD_PRESET || 'rentverse_unsigned',
       };
 
       console.log('📤 Uploading PDF to Cloudinary (unsigned preset)...');
@@ -512,7 +513,10 @@ class PDFGenerationService {
           `✅ PDF generated successfully! Size: ${Math.round(pdfBuffer.length / 1024)} KB`
         );
       } catch (browserError) {
-        console.warn('⚠️  Puppeteer/Chrome not available, creating placeholder PDF:', browserError.message);
+        console.warn(
+          '⚠️  Puppeteer/Chrome not available, creating placeholder PDF:',
+          browserError.message
+        );
         // Create a simple placeholder PDF using basic text if Puppeteer fails
         const placeholder = this.createPlaceholderPDF(lease);
         pdfBuffer = placeholder.buffer;
@@ -540,7 +544,11 @@ class PDFGenerationService {
 
           try {
             // Fallback: Save to local storage
-            uploadResult = await this.saveToLocalStorage(pdfBuffer, fileName, fileExtension);
+            uploadResult = await this.saveToLocalStorage(
+              pdfBuffer,
+              fileName,
+              fileExtension
+            );
             console.log('✅ PDF saved to local storage as backup!');
           } catch (localStorageError) {
             console.error('❌ Both Cloudinary and local storage failed:', {
@@ -554,13 +562,21 @@ class PDFGenerationService {
         }
       } else {
         // Cloudinary not configured - use local storage (dev environment)
-        console.log('⚠️ Cloudinary not configured, using local storage (files may be lost on restart)');
+        console.log(
+          '⚠️ Cloudinary not configured, using local storage (files may be lost on restart)'
+        );
         try {
-          uploadResult = await this.saveToLocalStorage(pdfBuffer, fileName, fileExtension);
+          uploadResult = await this.saveToLocalStorage(
+            pdfBuffer,
+            fileName,
+            fileExtension
+          );
           console.log('✅ PDF saved to local storage!');
         } catch (localStorageError) {
           console.error('❌ Local storage failed:', localStorageError.message);
-          throw new Error(`Failed to save PDF to local storage: ${localStorageError.message}`);
+          throw new Error(
+            `Failed to save PDF to local storage: ${localStorageError.message}`
+          );
         }
       }
 

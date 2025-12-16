@@ -149,7 +149,9 @@ class PropertiesService {
         where: {
           OR: [
             { name: { equals: filters.type, mode: 'insensitive' } },
-            { code: { equals: filters.type.toUpperCase(), mode: 'insensitive' } },
+            {
+              code: { equals: filters.type.toUpperCase(), mode: 'insensitive' },
+            },
           ],
         },
       });

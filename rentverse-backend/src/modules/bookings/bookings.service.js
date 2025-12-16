@@ -192,17 +192,25 @@ class BookingsService {
     // 📧 Send booking confirmation emails
     try {
       const emailService = require('../../services/email.service');
-      const frontendUrl = process.env.FRONTEND_URL || 'https://rentverse-frontend-nine.vercel.app';
+      const frontendUrl =
+        process.env.FRONTEND_URL ||
+        'https://rentverse-frontend-nine.vercel.app';
       const agreementUrl = `${frontendUrl}/my-agreements`;
 
-      const formatDate = (date) => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const formatDate = date =>
+        new Date(date).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        });
 
       // Send to tenant
       await emailService.sendBookingConfirmationToTenant({
         to: booking.tenant.email,
         tenantName: booking.tenant.name || booking.tenant.firstName || 'Tenant',
         propertyTitle: booking.property.title,
-        landlordName: booking.landlord.name || booking.landlord.firstName || 'Landlord',
+        landlordName:
+          booking.landlord.name || booking.landlord.firstName || 'Landlord',
         startDate: formatDate(booking.startDate),
         endDate: formatDate(booking.endDate),
         rentAmount: parseFloat(booking.rentAmount).toLocaleString(),
@@ -212,7 +220,8 @@ class BookingsService {
       // Send to landlord
       await emailService.sendBookingNotificationToLandlord({
         to: booking.landlord.email,
-        landlordName: booking.landlord.name || booking.landlord.firstName || 'Landlord',
+        landlordName:
+          booking.landlord.name || booking.landlord.firstName || 'Landlord',
         tenantName: booking.tenant.name || booking.tenant.firstName || 'Tenant',
         tenantEmail: booking.tenant.email,
         propertyTitle: booking.property.title,

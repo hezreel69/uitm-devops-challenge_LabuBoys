@@ -2,7 +2,7 @@ const nodemailer = require('nodemailer');
 
 /**
  * Email Service for sending OTP and notification emails
- * 
+ *
  * Supports multiple providers:
  * - Resend (HTTP API - works on Render free tier)
  * - Gmail SMTP (use app password)
@@ -40,8 +40,12 @@ class EmailService {
 
     // Check if SMTP is configured
     if (!host || !user || !pass) {
-      console.log('[EMAIL] No email provider configured. Emails will be logged to console instead.');
-      console.log('[EMAIL] To enable email, set RESEND_API_KEY or SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS in .env');
+      console.log(
+        '[EMAIL] No email provider configured. Emails will be logged to console instead.'
+      );
+      console.log(
+        '[EMAIL] To enable email, set RESEND_API_KEY or SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS in .env'
+      );
       this.isConfigured = false;
       return;
     }
@@ -77,7 +81,7 @@ class EmailService {
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.resendApiKey}`,
+          Authorization: `Bearer ${this.resendApiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -286,13 +290,20 @@ If you didn't request this code, you can safely ignore this email.
    * @param {string} options.agreementUrl - URL to sign the agreement
    * @returns {Promise<boolean>}
    */
-  async sendSigningReminderEmail({ to, recipientName, role, propertyTitle, agreementUrl }) {
+  async sendSigningReminderEmail({
+    to,
+    recipientName,
+    role,
+    propertyTitle,
+    agreementUrl,
+  }) {
     const subject = `⏰ Reminder: Sign Your Rental Agreement - ${propertyTitle}`;
 
     const roleText = role === 'landlord' ? 'landlord' : 'tenant';
-    const actionText = role === 'landlord'
-      ? 'As the landlord, your signature is required to proceed with the rental agreement.'
-      : 'The landlord has signed the agreement. Your signature is now required to complete the process.';
+    const actionText =
+      role === 'landlord'
+        ? 'As the landlord, your signature is required to proceed with the rental agreement.'
+        : 'The landlord has signed the agreement. Your signature is now required to complete the process.';
 
     const html = `
       <!DOCTYPE html>
@@ -352,7 +363,16 @@ If you didn't request this code, you can safely ignore this email.
    * Send booking confirmation email to tenant
    * @param {Object} options
    */
-  async sendBookingConfirmationToTenant({ to, tenantName, propertyTitle, landlordName, startDate, endDate, rentAmount, agreementUrl }) {
+  async sendBookingConfirmationToTenant({
+    to,
+    tenantName,
+    propertyTitle,
+    landlordName,
+    startDate,
+    endDate,
+    rentAmount,
+    agreementUrl,
+  }) {
     const subject = `🎉 Booking Confirmed - ${propertyTitle}`;
 
     const html = `
@@ -405,7 +425,17 @@ If you didn't request this code, you can safely ignore this email.
    * Send new booking notification to landlord
    * @param {Object} options
    */
-  async sendBookingNotificationToLandlord({ to, landlordName, tenantName, tenantEmail, propertyTitle, startDate, endDate, rentAmount, agreementUrl }) {
+  async sendBookingNotificationToLandlord({
+    to,
+    landlordName,
+    tenantName,
+    tenantEmail,
+    propertyTitle,
+    startDate,
+    endDate,
+    rentAmount,
+    agreementUrl,
+  }) {
     const subject = `📋 New Booking Request - ${propertyTitle}`;
 
     const html = `
@@ -458,7 +488,17 @@ If you didn't request this code, you can safely ignore this email.
    * Send agreement completed email to both parties
    * @param {Object} options
    */
-  async sendAgreementCompletedEmail({ to, recipientName, role, propertyTitle, otherPartyName, startDate, endDate, pdfUrl, dashboardUrl }) {
+  async sendAgreementCompletedEmail({
+    to,
+    recipientName,
+    role,
+    propertyTitle,
+    otherPartyName,
+    startDate,
+    endDate,
+    pdfUrl,
+    dashboardUrl,
+  }) {
     const subject = `✅ Rental Agreement Completed - ${propertyTitle}`;
     const roleText = role === 'landlord' ? 'tenant' : 'landlord';
 
@@ -525,7 +565,7 @@ If you didn't request this code, you can safely ignore this email.
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      timeZoneName: 'short'
+      timeZoneName: 'short',
     });
 
     const html = `
@@ -571,12 +611,16 @@ If you didn't request this code, you can safely ignore this email.
                 <td style="padding: 10px 0; color: #6b7280; font-size: 14px; border-bottom: 1px solid #e5e7eb;">Time</td>
                 <td style="padding: 10px 0; color: #111827; font-weight: 600; font-size: 14px; text-align: right; border-bottom: 1px solid #e5e7eb;">${loginTime}</td>
               </tr>
-              ${loginInfo.device ? `
+              ${
+                loginInfo.device
+                  ? `
               <tr>
                 <td style="padding: 10px 0; color: #6b7280; font-size: 14px;">Device</td>
                 <td style="padding: 10px 0; color: #111827; font-weight: 600; font-size: 14px; text-align: right;">${loginInfo.device}</td>
               </tr>
-              ` : ''}
+              `
+                  : ''
+              }
             </table>
           </div>
           
@@ -641,7 +685,9 @@ If you didn't request this code, you can safely ignore this email.
    */
   async verifyConnection() {
     if (this.useResend) {
-      console.log('[EMAIL] Resend API configured - no connection verification needed');
+      console.log(
+        '[EMAIL] Resend API configured - no connection verification needed'
+      );
       return true;
     }
 

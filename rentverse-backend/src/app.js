@@ -42,9 +42,9 @@ app.use(
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", "data:", "https:", "blob:"],
-        fontSrc: ["'self'", "https:", "data:"],
-        connectSrc: ["'self'", "https:", "wss:", "http://localhost:*"],
+        imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
+        fontSrc: ["'self'", 'https:', 'data:'],
+        connectSrc: ["'self'", 'https:', 'wss:', 'http://localhost:*'],
         frameSrc: ["'self'"],
         objectSrc: ["'none'"],
         upgradeInsecureRequests: [],
@@ -152,7 +152,10 @@ app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
 // Security Middleware (OWASP M5-M6)
 const { globalLimiter } = require('./middleware/rateLimit');
-const { sanitizeRequest, detectInjection } = require('./middleware/requestValidator');
+const {
+  sanitizeRequest,
+  detectInjection,
+} = require('./middleware/requestValidator');
 const { accessLogger, errorLogger } = require('./middleware/apiLogger');
 
 // Apply global rate limiter (100 requests per 15 minutes per IP)

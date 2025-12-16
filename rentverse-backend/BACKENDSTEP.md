@@ -8,13 +8,14 @@ This guide will help you set up and run the **Rentverse Backend** step by step.
 
 Before starting, make sure you have these installed:
 
-| Requirement | Download Link |
-|-------------|---------------|
-| **Node.js** (v18+) | [https://nodejs.org](https://nodejs.org) |
-| **PostgreSQL** | [https://postgresql.org/download](https://postgresql.org/download) |
-| **pnpm** (recommended) | Run: `npm install -g pnpm` |
+| Requirement            | Download Link                                                      |
+| ---------------------- | ------------------------------------------------------------------ |
+| **Node.js** (v18+)     | [https://nodejs.org](https://nodejs.org)                           |
+| **PostgreSQL**         | [https://postgresql.org/download](https://postgresql.org/download) |
+| **pnpm** (recommended) | Run: `npm install -g pnpm`                                         |
 
 > **Tip:** To check if you have them installed:
+>
 > ```bash
 > node -v      # Check Node.js version
 > psql --version   # Check PostgreSQL version
@@ -38,16 +39,19 @@ cd rentverse-backend
 Choose **one** of the following methods:
 
 ### Option A: Using pnpm (Recommended)
+
 ```bash
 pnpm install
 ```
 
 ### Option B: Using npm
+
 ```bash
 npm install
 ```
 
 ### Option C: Using Bun
+
 ```bash
 bun install
 ```
@@ -92,6 +96,7 @@ CREATE DATABASE rentverse;
 ```
 
 Or using command line:
+
 ```bash
 psql -U postgres -c "CREATE DATABASE rentverse;"
 ```
@@ -105,6 +110,7 @@ pnpm run db:migrate
 ```
 
 Or with npm:
+
 ```bash
 npm run db:migrate
 ```
@@ -130,11 +136,13 @@ pnpm run db:seed
 Start the backend server:
 
 ### Using pnpm
+
 ```bash
 pnpm dev
 ```
 
 ### Using npm
+
 ```bash
 npm run dev
 ```
@@ -146,6 +154,7 @@ npm run dev
 Once the server starts, you can:
 
 1. **Open the API in browser:**
+
    ```
    http://localhost:3000
    ```
@@ -159,17 +168,17 @@ Once the server starts, you can:
 
 ## Available Commands
 
-| Command | Description |
-|---------|-------------|
-| `pnpm dev` | Start development server with auto-reload |
-| `pnpm start` | Start production server |
-| `pnpm run db:migrate` | Run database migrations |
-| `pnpm run db:generate` | Generate Prisma client |
-| `pnpm run db:studio` | Open Prisma Studio (database GUI) |
-| `pnpm run db:seed` | Seed database with sample data |
-| `pnpm run db:reset` | Reset database (WARNING: deletes all data) |
-| `pnpm run lint` | Check code for errors |
-| `pnpm run format` | Format code with Prettier |
+| Command                | Description                                |
+| ---------------------- | ------------------------------------------ |
+| `pnpm dev`             | Start development server with auto-reload  |
+| `pnpm start`           | Start production server                    |
+| `pnpm run db:migrate`  | Run database migrations                    |
+| `pnpm run db:generate` | Generate Prisma client                     |
+| `pnpm run db:studio`   | Open Prisma Studio (database GUI)          |
+| `pnpm run db:seed`     | Seed database with sample data             |
+| `pnpm run db:reset`    | Reset database (WARNING: deletes all data) |
+| `pnpm run lint`        | Check code for errors                      |
+| `pnpm run format`      | Format code with Prettier                  |
 
 ---
 
@@ -211,40 +220,45 @@ rentverse-backend/
 
 ## Environment Variables Explained
 
-| Variable | Description |
-|----------|-------------|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `PORT` | Server port (default: 3000) |
-| `JWT_SECRET` | Secret key for JWT tokens |
-| `JWT_EXPIRES_IN` | Token expiration (default: 7d) |
-| `FRONTEND_URL` | Frontend URL for CORS |
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID |
-| `S3_ENDPOINT` | Storage endpoint for uploads |
+| Variable           | Description                    |
+| ------------------ | ------------------------------ |
+| `DATABASE_URL`     | PostgreSQL connection string   |
+| `PORT`             | Server port (default: 3000)    |
+| `JWT_SECRET`       | Secret key for JWT tokens      |
+| `JWT_EXPIRES_IN`   | Token expiration (default: 7d) |
+| `FRONTEND_URL`     | Frontend URL for CORS          |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID         |
+| `S3_ENDPOINT`      | Storage endpoint for uploads   |
 
 ---
 
 ## Troubleshooting
 
 ### "Cannot connect to database"
+
 - Make sure PostgreSQL is running
 - Check your `DATABASE_URL` credentials
 - Verify the database exists
 
 ### "Port 3000 already in use"
+
 - Change the `PORT` in your `.env` file
 - Or stop the other application using port 3000
 
 ### "Prisma client not generated"
+
 ```bash
 pnpm run db:generate
 ```
 
 ### "Migration failed"
+
 - Check your database connection
 - Make sure PostgreSQL is running
 - Try resetting: `pnpm run db:reset` (WARNING: deletes data)
 
 ### Dependencies failed to install
+
 ```bash
 rm -rf node_modules
 pnpm install
@@ -255,14 +269,19 @@ pnpm install
 ## Useful Tools
 
 ### Prisma Studio
+
 View and edit your database with a visual interface:
+
 ```bash
 pnpm run db:studio
 ```
+
 Opens at: `http://localhost:5555`
 
 ### Swagger API Docs
+
 Interactive API documentation:
+
 ```
 http://localhost:3000/api-docs
 ```
