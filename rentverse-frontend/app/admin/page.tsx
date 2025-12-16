@@ -118,21 +118,22 @@ interface AuthMeResponse {
   };
 }
 
-// Mock data for activity feed
-const mockActivities = [
-  { id: '1', type: 'approval', message: 'Property approved in Kuala Lumpur', time: '2m ago', icon: CheckCircle },
-  { id: '2', type: 'user', message: 'New user registered', time: '15m ago', icon: UserPlus },
-  { id: '3', type: 'property', message: 'New property submitted', time: '1h ago', icon: Building },
-  { id: '4', type: 'agreement', message: 'Agreement signed', time: '2h ago', icon: FileSignature },
-  { id: '5', type: 'approval', message: 'Property rejected in Penang', time: '3h ago', icon: XCircle },
-];
+interface PropertyStats {
+  totalProperties: number;
+  pendingApproval: number;
+  createdLast7d: number;
+}
 
-// Mock recent users
-const mockRecentUsers = [
-  { id: '1', name: 'John Doe', email: 'john@example.com', role: 'USER', time: '5m ago' },
-  { id: '2', name: 'Jane Smith', email: 'jane@example.com', role: 'USER', time: '12m ago' },
-  { id: '3', name: 'Mike Wilson', email: 'mike@example.com', role: 'USER', time: '1h ago' },
-];
+interface UserStats {
+  totalUsers: number;
+  newUsersLast7d: number;
+}
+
+interface AgreementStats {
+  totalAgreements: number;
+  completed: number;
+  completedLast7d: number;
+}
 
 function AdminPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -142,7 +143,9 @@ function AdminPage() {
   const [isLoadingApprovals, setIsLoadingApprovals] = useState(false);
   const [approvingProperties, setApprovingProperties] = useState<Set<string>>(new Set());
   const [rejectingProperties, setRejectingProperties] = useState<Set<string>>(new Set());
-  const [propertyStats, setPropertyStats] = useState<{ pendingApproval: number; submittedToday: number } | null>(null);
+  const [propertyStats, setPropertyStats] = useState<PropertyStats | null>(null);
+  const [userStats, setUserStats] = useState<UserStats | null>(null);
+  const [agreementStats, setAgreementStats] = useState<AgreementStats | null>(null);
   const { isLoggedIn } = useAuthStore();
 
   useEffect(() => {
@@ -232,32 +235,50 @@ function AdminPage() {
   }, [user]);
 
   useEffect(() => {
-    const fetchPropertyStats = async () => {
+    const fetchAllStats = async () => {
       if (!user || user.role !== 'ADMIN') return;
       try {
         const token = localStorage.getItem('authToken');
         if (!token) return;
-        const response = await fetch(createApiUrl('admin/properties/statistics'), {
-          method: 'GET',
-          headers: {
-            'accept': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.data.summary) {
-            setPropertyStats({
-              pendingApproval: data.data.summary.pendingApproval,
-              submittedToday: data.data.summary.submittedToday,
-            });
+
+        // Fetch all statistics in parallel
+        const [propertyRes, userRes, agreementRes] = await Promise.all([
+          fetch(createApiUrl('admin/properties/statistics'), {
+            headers: { 'Authorization': `Bearer ${token}` },
+          }),
+          fetch(createApiUrl('admin/users/statistics'), {
+            headers: { 'Authorization': `Bearer ${token}` },
+          }),
+          fetch(createApiUrl('admin/agreements/statistics'), {
+            headers: { 'Authorization': `Bearer ${token}` },
+          }),
+        ]);
+
+        if (propertyRes.ok) {
+          const data = await propertyRes.json();
+          if (data.success) {
+            setPropertyStats(data.data.summary);
+          }
+        }
+
+        if (userRes.ok) {
+          const data = await userRes.json();
+          if (data.success) {
+            setUserStats(data.data.summary);
+          }
+        }
+
+        if (agreementRes.ok) {
+          const data = await agreementRes.json();
+          if (data.success) {
+            setAgreementStats(data.data.summary);
           }
         }
       } catch (err) {
-        console.error('Error fetching property statistics:', err);
+        console.error('Error fetching statistics:', err);
       }
     };
-    fetchPropertyStats();
+    fetchAllStats();
   }, [user]);
 
   const formatPrice = (price: string, currency: string) => {
@@ -432,10 +453,6 @@ function AdminPage() {
     }
   };
 
-  const totalProperties = propertyStats?.pendingApproval ? (propertyStats.pendingApproval + 45) : 45;
-  const totalUsers = 127;
-  const activeAgreements = 23;
-
   return (
     <ContentWrapper>
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 py-8">
@@ -444,17 +461,17 @@ function AdminPage() {
 
           {/* 3-Column Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* LEFT COLUMN - KPIs & Activity Feed */}
+            {/* LEFT COLUMN - Live KPIs */}
             <div className="lg:col-span-3 space-y-6">
-              {/* Live KPIs */}
               <div className="space-y-3">
                 <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-xl p-5 text-white">
                   <div className="flex items-center justify-between mb-2">
                     <Building size={24} className="opacity-80" />
                     <TrendingUp size={18} />
                   </div>
-                  <div className="text-3xl font-bold">{totalProperties}</div>
+                  <div className="text-3xl font-bold">{propertyStats?.totalProperties || 0}</div>
                   <div className="text-sm opacity-90">Total Properties</div>
+                  <div className="text-xs opacity-75 mt-1">+{propertyStats?.createdLast7d || 0} this week</div>
                 </div>
 
                 <div className="bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl shadow-xl p-5 text-white">
@@ -462,8 +479,9 @@ function AdminPage() {
                     <Users size={24} className="opacity-80" />
                     <TrendingUp size={18} />
                   </div>
-                  <div className="text-3xl font-bold">{totalUsers}</div>
+                  <div className="text-3xl font-bold">{userStats?.totalUsers || 0}</div>
                   <div className="text-sm opacity-90">Total Users</div>
+                  <div className="text-xs opacity-75 mt-1">+{userStats?.newUsersLast7d || 0} this week</div>
                 </div>
 
                 <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl shadow-xl p-5 text-white">
@@ -471,36 +489,15 @@ function AdminPage() {
                     <FileSignature size={24} className="opacity-80" />
                     <TrendingUp size={18} />
                   </div>
-                  <div className="text-3xl font-bold">{activeAgreements}</div>
-                  <div className="text-sm opacity-90">Active Agreements</div>
-                </div>
-              </div>
-
-              {/* Live Activity Feed */}
-              <div className="bg-white rounded-3xl shadow-xl border-2 border-emerald-100 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wide">Live Activity</h3>
-                  <Activity size={18} className="text-emerald-600 animate-pulse" />
-                </div>
-                <div className="space-y-3">
-                  {mockActivities.map((activity) => (
-                    <div key={activity.id} className="flex items-start space-x-3 p-2 rounded-xl hover:bg-emerald-50 transition-colors">
-                      <div className="p-2 bg-emerald-100 rounded-lg">
-                        <activity.icon size={14} className="text-emerald-600" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-slate-700 font-medium truncate">{activity.message}</p>
-                        <p className="text-xs text-slate-400">{activity.time}</p>
-                      </div>
-                    </div>
-                  ))}
+                  <div className="text-3xl font-bold">{agreementStats?.completed || 0}</div>
+                  <div className="text-sm opacity-90">Signed Agreements</div>
+                  <div className="text-xs opacity-75 mt-1">+{agreementStats?.completedLast7d || 0} this week</div>
                 </div>
               </div>
             </div>
 
-            {/* CENTER COLUMN - Approval Queue & Timeline */}
+            {/* CENTER COLUMN - Approval Queue */}
             <div className="lg:col-span-6 space-y-6">
-              {/* Approval Queue */}
               <div className="bg-white rounded-3xl shadow-xl border-2 border-amber-100 p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-bold text-slate-900 flex items-center space-x-2">
@@ -596,158 +593,49 @@ function AdminPage() {
                   </div>
                 )}
               </div>
-
-              {/* Activity Timeline */}
-              <div className="bg-white rounded-3xl shadow-xl border-2 border-emerald-100 p-6">
-                <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center space-x-2">
-                  <Clock className="text-emerald-600" size={24} />
-                  <span>Recent Activity Timeline</span>
-                </h2>
-                <div className="space-y-4">
-                  <div className="flex items-start space-x-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-                        <CheckCircle size={18} className="text-white" />
-                      </div>
-                      <div className="w-0.5 h-12 bg-emerald-200 mt-2"></div>
-                    </div>
-                    <div className="flex-1 pt-2">
-                      <p className="text-sm font-semibold text-slate-900">Property Approved</p>
-                      <p className="text-xs text-slate-600">Modern Condo in KLCC approved</p>
-                      <p className="text-xs text-slate-400 mt-1">2 hours ago</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
-                        <UserPlus size={18} className="text-white" />
-                      </div>
-                      <div className="w-0.5 h-12 bg-blue-200 mt-2"></div>
-                    </div>
-                    <div className="flex-1 pt-2">
-                      <p className="text-sm font-semibold text-slate-900">New User Registered</p>
-                      <p className="text-xs text-slate-600">John Doe joined as tenant</p>
-                      <p className="text-xs text-slate-400 mt-1">5 hours ago</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center">
-                        <FileSignature size={18} className="text-white" />
-                      </div>
-                    </div>
-                    <div className="flex-1 pt-2">
-                      <p className="text-sm font-semibold text-slate-900">Agreement Signed</p>
-                      <p className="text-xs text-slate-600">Lease agreement completed</p>
-                      <p className="text-xs text-slate-400 mt-1">1 day ago</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
 
-            {/* RIGHT COLUMN - Analytics & Recent Users */}
+            {/* RIGHT COLUMN - Quick Links */}
             <div className="lg:col-span-3 space-y-6">
-              {/* Growth Analytics */}
               <div className="bg-white rounded-3xl shadow-xl border-2 border-emerald-100 p-6">
-                <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wide mb-4">7-Day Growth</h3>
+                <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wide mb-4">Quick Access</h3>
                 <div className="space-y-3">
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold text-slate-600">Properties</span>
-                      <span className="text-sm font-bold text-emerald-600">+{propertyStats?.submittedToday || 0}</span>
-                    </div>
-                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-600" style={{ width: '75%' }}></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold text-slate-600">Users</span>
-                      <span className="text-sm font-bold text-purple-600">+12</span>
-                    </div>
-                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-purple-500 to-violet-600" style={{ width: '60%' }}></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold text-slate-600">Agreements</span>
-                      <span className="text-sm font-bold text-blue-600">+8</span>
-                    </div>
-                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-600" style={{ width: '45%' }}></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold text-slate-600">Revenue</span>
-                      <span className="text-sm font-bold text-amber-600">+15%</span>
-                    </div>
-                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-amber-500 to-orange-600" style={{ width: '85%' }}></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Recent Users */}
-              <div className="bg-white rounded-3xl shadow-xl border-2 border-emerald-100 p-6">
-                <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wide mb-4">Recent Users</h3>
-                <div className="space-y-3">
-                  {mockRecentUsers.map((recentUser) => (
-                    <div key={recentUser.id} className="flex items-center space-x-3 p-3 bg-emerald-50 rounded-xl hover:bg-emerald-100 transition-colors">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-sm">
-                        {recentUser.name.split(' ').map(n => n[0]).join('')}
+                  <Link href="/admin/properties" className="block">
+                    <div className="flex items-center space-x-3 p-3 bg-emerald-50 rounded-xl hover:bg-emerald-100 transition-colors">
+                      <Building size={20} className="text-emerald-600" />
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-slate-900">Properties</p>
+                        <p className="text-xs text-slate-500">{propertyStats?.totalProperties || 0} total</p>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-slate-900 truncate">{recentUser.name}</p>
-                        <p className="text-xs text-slate-500 truncate">{recentUser.email}</p>
+                    </div>
+                  </Link>
+                  <Link href="/admin/users" className="block">
+                    <div className="flex items-center space-x-3 p-3 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors">
+                      <Users size={20} className="text-purple-600" />
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-slate-900">Users</p>
+                        <p className="text-xs text-slate-500">{userStats?.totalUsers || 0} total</p>
                       </div>
-                      <span className="text-xs text-slate-400 whitespace-nowrap">{recentUser.time}</span>
                     </div>
-                  ))}
-                </div>
-                <Link
-                  href="/admin/users"
-                  className="block text-center mt-4 py-2 text-emerald-600 hover:text-emerald-700 font-semibold text-sm"
-                >
-                  View all users →
-                </Link>
-              </div>
-
-              {/* System Status */}
-              <div className="bg-white rounded-3xl shadow-xl border-2 border-emerald-100 p-6">
-                <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wide mb-4">System Status</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-2">
-                    <span className="text-sm text-slate-700">API Server</span>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                      <span className="text-xs font-semibold text-emerald-600">Operational</span>
+                  </Link>
+                  <Link href="/admin/agreements" className="block">
+                    <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors">
+                      <FileSignature size={20} className="text-blue-600" />
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-slate-900">Agreements</p>
+                        <p className="text-xs text-slate-500">{agreementStats?.totalAgreements || 0} total</p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center justify-between p-2">
-                    <span className="text-sm text-slate-700">Database</span>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                      <span className="text-xs font-semibold text-emerald-600">Operational</span>
+                  </Link>
+                  <Link href="/admin/security" className="block">
+                    <div className="flex items-center space-x-3 p-3 bg-red-50 rounded-xl hover:bg-red-100 transition-colors">
+                      <Shield size={20} className="text-red-600" />
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-slate-900">Security</p>
+                        <p className="text-xs text-slate-500">Monitor threats</p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center justify-between p-2">
-                    <span className="text-sm text-slate-700">Storage</span>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                      <span className="text-xs font-semibold text-emerald-600">Operational</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between p-2">
-                    <span className="text-sm text-slate-700">Email Service</span>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                      <span className="text-xs font-semibold text-emerald-600">Operational</span>
-                    </div>
-                  </div>
+                  </Link>
                 </div>
               </div>
             </div>

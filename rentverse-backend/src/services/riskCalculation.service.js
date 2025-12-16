@@ -88,7 +88,7 @@ async function calculateSystemRisk(timeWindowHours = 24) {
   // Check if there are security alerts that haven't been reviewed
   const unreviewedAlerts = await prisma.securityAlert.count({
     where: {
-      read: false,
+      isRead: false,
       createdAt: { gte: timeWindow },
     },
   });
@@ -287,7 +287,7 @@ async function getFlaggedEvents(limit = 20) {
   // Get recent security alerts that haven't been read
   const alerts = await prisma.securityAlert.findMany({
     where: {
-      read: false,
+      isRead: false,
     },
     include: {
       user: {
@@ -306,13 +306,13 @@ async function getFlaggedEvents(limit = 20) {
 
   return alerts.map(alert => ({
     id: alert.id,
-    type: alert.alertType,
+    type: alert.type,
     severity: alert.severity || 'medium',
     user: alert.user,
     message: alert.message,
     metadata: alert.metadata,
     timestamp: alert.createdAt,
-    read: alert.read,
+    read: alert.isRead,
   }));
 }
 
@@ -334,7 +334,7 @@ async function autoRespondToEvent(eventId) {
   const responses = [];
 
   // Auto-response based on alert type
-  switch (alert.alertType) {
+  switch (alert.type) {
     case 'ACCOUNT_LOCKED':
       responses.push({
         action: 'notification_sent',
@@ -378,12 +378,12 @@ async function autoRespondToEvent(eventId) {
   // Mark alert as read after auto-response
   await prisma.securityAlert.update({
     where: { id: eventId },
-    data: { read: true },
+    data: { isRead: true },
   });
 
   return {
     alertId: eventId,
-    alertType: alert.alertType,
+    alertType: alert.type,
     responses,
     autoRespondedAt: new Date(),
   };
