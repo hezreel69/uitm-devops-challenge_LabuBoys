@@ -527,15 +527,64 @@ const useAuthStore = create<AuthStore>((set, get) => ({
 
       if (storedToken && storedUser) {
         const user = JSON.parse(storedUser) as User
-        set({
-          user,
-          isLoggedIn: true,
-          error: null,
+        
+        // Validate token with backend before setting isLoggedIn
+        fetch('/api/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${storedToken}`
+          }
         })
-
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[AUTH] Initialized with stored user:', user)
-        }
+          .then(res => res.json())
+          .then(result => {
+            if (result.success && result.data) {
+              // Use stored user data but update with fresh data from backend if available
+              const freshUser = {
+                id: result.data.id || user.id,
+                email: result.data.email || user.email,
+                firstName: result.data.firstName || user.firstName,
+                lastName: result.data.lastName || user.lastName,
+                name: result.data.name || user.name || `${result.data.firstName || user.firstName || ''} ${result.data.lastName || user.lastName || ''}`.trim(),
+                dateOfBirth: result.data.dateOfBirth || user.dateOfBirth,
+                phone: result.data.phone || user.phone,
+                role: result.data.role || user.role,
+                birthdate: result.data.dateOfBirth || user.birthdate,
+              }
+              
+              set({
+                user: freshUser,
+                isLoggedIn: true,
+                error: null,
+              })
+              
+              // Update localStorage with fresh data
+              localStorage.setItem('authUser', JSON.stringify(freshUser))
+              
+              if (process.env.NODE_ENV === 'development') {
+                console.log('[AUTH] Token validated, user authenticated:', freshUser)
+              }
+            } else {
+              // Token is invalid, clear everything
+              if (process.env.NODE_ENV === 'development') {
+                console.log('[AUTH] Invalid token, clearing storage')
+              }
+              localStorage.removeItem('authToken')
+              localStorage.removeItem('authUser')
+              deleteCookie('authToken')
+              set({ isLoggedIn: false, user: null })
+            }
+          })
+          .catch((error) => {
+            // Token validation failed - but keep user logged in with stored data
+            // This handles cases where backend is temporarily unavailable
+            if (process.env.NODE_ENV === 'development') {
+              console.log('[AUTH] Token validation request failed, using stored user data:', error.message)
+            }
+            set({
+              user,
+              isLoggedIn: true,
+              error: null,
+            })
+          })
       }
     } catch (error) {
       console.error('Error initializing auth:', error)
