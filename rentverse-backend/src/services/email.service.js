@@ -161,6 +161,14 @@ class EmailService {
    * @returns {Promise<boolean>}
    */
   async sendOtpEmail(email, otp, expiryMinutes = 5) {
+    // Always log OTP to console for easy access
+    console.log('\n========================================');
+    console.log('[OTP CODE]');
+    console.log(`Email: ${email}`);
+    console.log(`Code: ${otp}`);
+    console.log(`Expires in: ${expiryMinutes} minutes`);
+    console.log('========================================\n');
+
     const subject = `Your RentVerse Verification Code: ${otp}`;
 
     const html = `

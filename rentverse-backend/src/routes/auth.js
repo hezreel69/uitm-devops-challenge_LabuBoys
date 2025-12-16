@@ -15,7 +15,6 @@ const {
 const { blacklistToken } = require('../services/tokenBlacklist');
 const { securityLogger } = require('../middleware/apiLogger');
 const { auth } = require('../middleware/auth');
-const { requireRecentAuth } = require('../middleware/reauth');
 
 // Smart Notification System imports (Module 3)
 const suspiciousActivityService = require('../services/suspiciousActivity.service');
@@ -1657,7 +1656,7 @@ router.post('/oauth/unlink', async (req, res) => {
  * /api/auth/change-password:
  *   post:
  *     summary: Change user password
- *     description: Change user password - requires recent authentication (within 15 minutes)
+ *     description: Change user password
  *     tags: [Authentication]
  *     security:
  *       - bearerAuth: []
@@ -1689,7 +1688,6 @@ router.post('/oauth/unlink', async (req, res) => {
 router.post(
   '/change-password',
   auth,
-  requireRecentAuth,
   [
     body('currentPassword')
       .notEmpty()

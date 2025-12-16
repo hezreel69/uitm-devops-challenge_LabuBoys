@@ -10,6 +10,8 @@ import clsx from 'clsx'
 import AuthInitializer from '@/components/AuthInitializer'
 import { RateLimitProvider } from '@/components/RateLimitProvider'
 import AppUrlListener from '@/components/AppUrlListener'
+import IdleTimeout from '@/components/IdleTimeout'
+import SessionExpiredModal from '@/components/SessionExpiredModal'
 
 const poly = Poly({
   weight: '400',
@@ -43,6 +45,8 @@ export default function RootLayout({
         <RateLimitProvider>
           <AuthInitializer />
           <AppUrlListener />
+          <IdleTimeout timeoutSeconds={900} />
+          <SessionExpiredModal />
           {children}
         </RateLimitProvider>
       </body>
