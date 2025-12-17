@@ -237,17 +237,17 @@ function MyAgreementsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header Section */}
           <div className="mb-8">
-            <div className="bg-white rounded-3xl shadow-xl border-2 border-emerald-100 p-8">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl">
-                    <FileSignature size={32} className="text-white" />
+            <div className="bg-white rounded-3xl shadow-xl border-2 border-emerald-100 p-4 sm:p-6 lg:p-8">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+                <div className="flex items-center space-x-3 sm:space-x-4">
+                  <div className="p-2 sm:p-3 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl">
+                    <FileSignature size={28} className="text-white sm:w-8 sm:h-8" />
                   </div>
                   <div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                    <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
                       My Agreements
                     </h1>
-                    <p className="text-slate-600 mt-1">
+                    <p className="text-slate-600 mt-1 text-sm sm:text-base">
                       Manage and sign your rental agreements
                     </p>
                   </div>
@@ -266,12 +266,27 @@ function MyAgreementsPage() {
                   </div>
                 </div>
               </div>
+              
+              {/* Mobile Stats */}
+              <div className="flex md:hidden items-center justify-around mb-6 py-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-emerald-600">{agreements.length}</div>
+                  <div className="text-xs text-slate-500">Total</div>
+                </div>
+                <div className="h-8 w-px bg-slate-200"></div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-teal-600">
+                    {agreements.filter(a => a.status === 'COMPLETED').length}
+                  </div>
+                  <div className="text-xs text-slate-500">Completed</div>
+                </div>
+              </div>
 
               {/* Role Filter Tabs */}
-              <div className="flex space-x-3">
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
                 <button
                   onClick={() => setRoleFilter('all')}
-                  className={`flex-1 sm:flex-none px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                  className={`px-4 sm:px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
                     roleFilter === 'all'
                       ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg scale-105'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -284,7 +299,7 @@ function MyAgreementsPage() {
                 </button>
                 <button
                   onClick={() => setRoleFilter('landlord')}
-                  className={`flex-1 sm:flex-none px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                  className={`px-4 sm:px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
                     roleFilter === 'landlord'
                       ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg scale-105'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -297,7 +312,7 @@ function MyAgreementsPage() {
                 </button>
                 <button
                   onClick={() => setRoleFilter('tenant')}
-                  className={`flex-1 sm:flex-none px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                  className={`px-4 sm:px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
                     roleFilter === 'tenant'
                       ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg scale-105'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -385,7 +400,7 @@ function MyAgreementsPage() {
                     <div className="flex flex-col lg:flex-row">
                       {/* Property Image */}
                       <div className="lg:w-2/5 relative">
-                        <div className="relative h-64 lg:h-full min-h-[280px]">
+                        <div className="relative h-48 sm:h-64 lg:h-full lg:min-h-[280px]">
                           <Image
                             src={agreement.lease.property.images?.[0] || '/placeholder-property.jpg'}
                             alt={agreement.lease.property.title}
@@ -396,37 +411,39 @@ function MyAgreementsPage() {
 
                           {/* Role Badge */}
                           <div
-                            className={`absolute top-4 left-4 px-4 py-2 rounded-xl font-bold flex items-center space-x-2 shadow-xl backdrop-blur-sm ${
+                            className={`absolute top-3 left-3 sm:top-4 sm:left-4 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-sm sm:text-base font-bold flex items-center space-x-2 shadow-xl backdrop-blur-sm ${
                               userRole === 'landlord'
                                 ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white'
                                 : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white'
                             }`}
                           >
-                            {userRole === 'landlord' ? <Home size={18} /> : <Key size={18} />}
-                            <span>{userRole === 'landlord' ? 'My Property' : 'My Rental'}</span>
+                            {userRole === 'landlord' ? <Home size={16} className="sm:w-[18px] sm:h-[18px]" /> : <Key size={16} className="sm:w-[18px] sm:h-[18px]" />}
+                            <span className="hidden sm:inline">{userRole === 'landlord' ? 'My Property' : 'My Rental'}</span>
+                            <span className="sm:hidden">{userRole === 'landlord' ? 'Property' : 'Rental'}</span>
                           </div>
 
                           {/* Action Needed Badge */}
                           {actionNeeded && (
-                            <div className="absolute top-4 right-4 px-4 py-2 bg-amber-500 text-white rounded-xl font-bold animate-bounce shadow-xl">
-                              <span className="flex items-center space-x-2">
-                                <AlertCircle size={18} />
-                                <span>Signature Required</span>
+                            <div className="absolute top-3 right-3 sm:top-4 sm:right-4 px-3 py-1.5 sm:px-4 sm:py-2 bg-amber-500 text-white rounded-xl text-xs sm:text-base font-bold animate-bounce shadow-xl">
+                              <span className="flex items-center space-x-1 sm:space-x-2">
+                                <AlertCircle size={16} className="sm:w-[18px] sm:h-[18px]" />
+                                <span className="hidden sm:inline">Signature Required</span>
+                                <span className="sm:hidden">Sign</span>
                               </span>
                             </div>
                           )}
 
                           {/* Rent Amount */}
-                          <div className="absolute bottom-4 left-4 right-4">
-                            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-xl">
+                          <div className="absolute bottom-3 left-3 right-3 sm:bottom-4 sm:left-4 sm:right-4">
+                            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-3 sm:p-4 shadow-xl">
                               <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-2">
-                                  <DollarSign size={20} className="text-emerald-600" />
-                                  <span className="text-2xl font-bold text-slate-900">
+                                <div className="flex items-center space-x-1 sm:space-x-2">
+                                  <DollarSign size={18} className="text-emerald-600 sm:w-5 sm:h-5" />
+                                  <span className="text-xl sm:text-2xl font-bold text-slate-900">
                                     {agreement.lease.currencyCode} {parseFloat(agreement.lease.rentAmount).toLocaleString()}
                                   </span>
                                 </div>
-                                <span className="text-sm text-slate-500 font-medium">per month</span>
+                                <span className="text-xs sm:text-sm text-slate-500 font-medium">per month</span>
                               </div>
                             </div>
                           </div>
@@ -434,36 +451,36 @@ function MyAgreementsPage() {
                       </div>
 
                       {/* Agreement Details */}
-                      <div className="flex-1 p-8">
+                      <div className="flex-1 p-4 sm:p-6 lg:p-8">
                         <div className="flex flex-col h-full">
                           {/* Header */}
-                          <div className="flex justify-between items-start mb-6">
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-6 gap-3">
                             <div className="flex-1">
-                              <h3 className="text-2xl font-bold text-slate-900 mb-2">
+                              <h3 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">
                                 {agreement.lease.property.title}
                               </h3>
                               <div className="flex items-center text-slate-600 mb-3">
-                                <MapPin size={18} className="mr-2 text-emerald-600" />
-                                <span className="font-medium">{agreement.lease.property.address}, {agreement.lease.property.city}</span>
+                                <MapPin size={16} className="mr-2 text-emerald-600 sm:w-[18px] sm:h-[18px]" />
+                                <span className="font-medium text-sm sm:text-base">{agreement.lease.property.address}, {agreement.lease.property.city}</span>
                               </div>
                             </div>
-                            <div className={`px-4 py-2 rounded-xl font-bold flex items-center space-x-2 ${statusConfig.bg} ${statusConfig.text}`}>
+                            <div className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-sm sm:text-base font-bold flex items-center space-x-2 ${statusConfig.bg} ${statusConfig.text} self-start`}>
                               {statusConfig.icon}
                               <span>{statusConfig.label}</span>
                             </div>
                           </div>
 
                           {/* Info Cards */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-6">
                             {/* Lease Period */}
-                            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-4 border-2 border-emerald-200">
-                              <div className="flex items-center space-x-3">
-                                <div className="p-2 bg-white rounded-xl">
-                                  <Calendar size={20} className="text-emerald-600" />
+                            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-3 sm:p-4 border-2 border-emerald-200">
+                              <div className="flex items-center space-x-2 sm:space-x-3">
+                                <div className="p-1.5 sm:p-2 bg-white rounded-xl">
+                                  <Calendar size={18} className="text-emerald-600 sm:w-5 sm:h-5" />
                                 </div>
                                 <div>
                                   <div className="text-xs text-slate-500 font-semibold uppercase">Lease Period</div>
-                                  <div className="text-sm font-bold text-slate-900">
+                                  <div className="text-xs sm:text-sm font-bold text-slate-900">
                                     {formatDate(agreement.lease.startDate)} - {formatDate(agreement.lease.endDate)}
                                   </div>
                                 </div>
@@ -471,16 +488,16 @@ function MyAgreementsPage() {
                             </div>
 
                             {/* Other Party */}
-                            <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-2xl p-4 border-2 border-cyan-200">
-                              <div className="flex items-center space-x-3">
-                                <div className="p-2 bg-white rounded-xl">
-                                  <User size={20} className="text-cyan-600" />
+                            <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-2xl p-3 sm:p-4 border-2 border-cyan-200">
+                              <div className="flex items-center space-x-2 sm:space-x-3">
+                                <div className="p-1.5 sm:p-2 bg-white rounded-xl">
+                                  <User size={18} className="text-cyan-600 sm:w-5 sm:h-5" />
                                 </div>
                                 <div>
                                   <div className="text-xs text-slate-500 font-semibold uppercase">
                                     {userRole === 'landlord' ? 'Tenant' : 'Landlord'}
                                   </div>
-                                  <div className="text-sm font-bold text-slate-900">
+                                  <div className="text-xs sm:text-sm font-bold text-slate-900">
                                     {userRole === 'landlord' ? agreement.lease.tenant.name : agreement.lease.landlord.name}
                                   </div>
                                 </div>
@@ -489,47 +506,47 @@ function MyAgreementsPage() {
                           </div>
 
                           {/* Signature Status */}
-                          <div className="bg-slate-50 rounded-2xl p-6 mb-6 border-2 border-slate-200">
-                            <div className="text-sm font-bold text-slate-700 mb-4 uppercase tracking-wide">Signature Status</div>
-                            <div className="space-y-3">
+                          <div className="bg-slate-50 rounded-2xl p-4 sm:p-6 mb-6 border-2 border-slate-200">
+                            <div className="text-xs sm:text-sm font-bold text-slate-700 mb-3 sm:mb-4 uppercase tracking-wide">Signature Status</div>
+                            <div className="space-y-2 sm:space-y-3">
                               <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-3">
-                                  <div className={`p-2 rounded-xl ${agreement.landlordSigned ? 'bg-emerald-100' : 'bg-slate-200'}`}>
+                                <div className="flex items-center space-x-2 sm:space-x-3">
+                                  <div className={`p-1.5 sm:p-2 rounded-xl ${agreement.landlordSigned ? 'bg-emerald-100' : 'bg-slate-200'}`}>
                                     {agreement.landlordSigned ? (
-                                      <CheckCircle size={20} className="text-emerald-600" />
+                                      <CheckCircle size={18} className="text-emerald-600 sm:w-5 sm:h-5" />
                                     ) : (
-                                      <Clock size={20} className="text-slate-500" />
+                                      <Clock size={18} className="text-slate-500 sm:w-5 sm:h-5" />
                                     )}
                                   </div>
                                   <div>
-                                    <div className="font-semibold text-slate-900">Landlord Signature</div>
+                                    <div className="font-semibold text-slate-900 text-sm sm:text-base">Landlord Signature</div>
                                     {userRole === 'landlord' && !agreement.landlordSigned && (
                                       <div className="text-xs text-amber-600 font-bold">Your signature required</div>
                                     )}
                                   </div>
                                 </div>
-                                <div className={`px-3 py-1 rounded-lg font-bold text-sm ${agreement.landlordSigned ? 'bg-emerald-200 text-emerald-800' : 'bg-slate-200 text-slate-600'}`}>
+                                <div className={`px-2 py-1 sm:px-3 sm:py-1 rounded-lg font-bold text-xs sm:text-sm ${agreement.landlordSigned ? 'bg-emerald-200 text-emerald-800' : 'bg-slate-200 text-slate-600'}`}>
                                   {agreement.landlordSigned ? 'Signed' : 'Pending'}
                                 </div>
                               </div>
 
                               <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-3">
-                                  <div className={`p-2 rounded-xl ${agreement.tenantSigned ? 'bg-emerald-100' : 'bg-slate-200'}`}>
+                                <div className="flex items-center space-x-2 sm:space-x-3">
+                                  <div className={`p-1.5 sm:p-2 rounded-xl ${agreement.tenantSigned ? 'bg-emerald-100' : 'bg-slate-200'}`}>
                                     {agreement.tenantSigned ? (
-                                      <CheckCircle size={20} className="text-emerald-600" />
+                                      <CheckCircle size={18} className="text-emerald-600 sm:w-5 sm:h-5" />
                                     ) : (
-                                      <Clock size={20} className="text-slate-500" />
+                                      <Clock size={18} className="text-slate-500 sm:w-5 sm:h-5" />
                                     )}
                                   </div>
                                   <div>
-                                    <div className="font-semibold text-slate-900">Tenant Signature</div>
+                                    <div className="font-semibold text-slate-900 text-sm sm:text-base">Tenant Signature</div>
                                     {userRole === 'tenant' && !agreement.tenantSigned && (
                                       <div className="text-xs text-amber-600 font-bold">Your signature required</div>
                                     )}
                                   </div>
                                 </div>
-                                <div className={`px-3 py-1 rounded-lg font-bold text-sm ${agreement.tenantSigned ? 'bg-emerald-200 text-emerald-800' : 'bg-slate-200 text-slate-600'}`}>
+                                <div className={`px-2 py-1 sm:px-3 sm:py-1 rounded-lg font-bold text-xs sm:text-sm ${agreement.tenantSigned ? 'bg-emerald-200 text-emerald-800' : 'bg-slate-200 text-slate-600'}`}>
                                   {agreement.tenantSigned ? 'Signed' : 'Pending'}
                                 </div>
                               </div>
@@ -537,22 +554,22 @@ function MyAgreementsPage() {
                           </div>
 
                           {/* Footer */}
-                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-auto space-y-4 sm:space-y-0">
-                            <div className="flex items-center space-x-2 text-sm text-slate-500">
-                              <Clock size={16} />
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-auto space-y-3 sm:space-y-0">
+                            <div className="flex items-center space-x-2 text-xs sm:text-sm text-slate-500">
+                              <Clock size={14} className="sm:w-4 sm:h-4" />
                               <span>Created {formatDate(agreement.generatedAt)}</span>
                             </div>
                             <Link
                               href={`/agreements/${agreement.leaseId}`}
-                              className={`inline-flex items-center justify-center space-x-2 px-8 py-4 rounded-2xl font-bold transition-all duration-200 ${
+                              className={`inline-flex items-center justify-center space-x-2 px-6 py-3 sm:px-8 sm:py-4 rounded-2xl font-bold transition-all duration-200 text-sm sm:text-base ${
                                 actionNeeded
                                   ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:shadow-xl hover:scale-105 animate-pulse'
                                   : 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:shadow-xl hover:scale-105'
                               }`}
                             >
-                              <FileSignature size={20} />
+                              <FileSignature size={18} className="sm:w-5 sm:h-5" />
                               <span>{actionNeeded ? 'Sign Agreement Now' : 'View Agreement'}</span>
-                              <ArrowRight size={20} />
+                              <ArrowRight size={18} className="sm:w-5 sm:h-5" />
                             </Link>
                           </div>
                         </div>

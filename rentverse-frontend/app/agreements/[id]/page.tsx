@@ -314,27 +314,27 @@ export default function AgreementSigningPage() {
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 py-8">
       <ContentWrapper>
         {/* Header */}
-        <div className="max-w-5xl mx-auto mb-8">
-          <div className="bg-white rounded-2xl shadow-lg p-6">
+        <div className="max-w-5xl mx-auto mb-8 px-4">
+          <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 sm:gap-4">
                 <Link
                   href="/my-agreements"
-                  className="p-3 hover:bg-emerald-50 rounded-xl transition-colors group"
+                  className="p-2 sm:p-3 hover:bg-emerald-50 rounded-xl transition-colors group"
                 >
-                  <ArrowLeft size={24} className="text-emerald-600 group-hover:text-emerald-700" />
+                  <ArrowLeft size={20} className="text-emerald-600 group-hover:text-emerald-700 sm:w-6 sm:h-6" />
                 </Link>
-                <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
-                    <FileSignature size={28} className="text-white" />
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
+                    <FileSignature size={24} className="text-white sm:w-7 sm:h-7" />
                   </div>
                   <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Rental Agreement</h1>
-                    <p className="text-emerald-600 font-medium">Digital Signature Required</p>
+                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Rental Agreement</h1>
+                    <p className="text-emerald-600 font-medium text-xs sm:text-sm lg:text-base">Digital Signature Required</p>
                   </div>
                 </div>
               </div>
-              <div className={`px-5 py-2.5 rounded-full font-semibold flex items-center gap-2 border-2 ${statusConfig.color}`}>
+              <div className={`px-3 py-1.5 sm:px-5 sm:py-2.5 rounded-full text-sm sm:text-base font-semibold flex items-center gap-2 border-2 ${statusConfig.color}`}>
                 {statusConfig.icon}
                 <span>{statusConfig.label}</span>
               </div>
@@ -343,10 +343,10 @@ export default function AgreementSigningPage() {
         </div>
 
         {/* Main Content */}
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-5xl mx-auto px-4">
           <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
             {/* Property Header with modern gradient */}
-            <div className="relative h-72">
+            <div className="relative h-48 sm:h-64 lg:h-72">
               <Image
                 src={propertyImage}
                 alt={agreement.lease.property.title}
@@ -354,17 +354,17 @@ export default function AgreementSigningPage() {
                 className="object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-8">
+              <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 lg:p-8">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full text-white text-sm font-medium mb-3">
-                      <Home size={16} />
+                    <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-white text-xs sm:text-sm font-medium mb-2 sm:mb-3">
+                      <Home size={14} className="sm:w-4 sm:h-4" />
                       Property Details
                     </div>
-                    <h2 className="text-3xl font-bold text-white mb-3">{agreement.lease.property.title}</h2>
+                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2 sm:mb-3">{agreement.lease.property.title}</h2>
                     <div className="flex items-center text-white/95">
-                      <MapPin size={18} className="mr-2" />
-                      <span className="text-lg">{agreement.lease.property.address}</span>
+                      <MapPin size={16} className="mr-2 sm:w-[18px] sm:h-[18px]" />
+                      <span className="text-sm sm:text-base lg:text-lg">{agreement.lease.property.address}</span>
                     </div>
                   </div>
                 </div>
@@ -372,36 +372,36 @@ export default function AgreementSigningPage() {
             </div>
 
             {/* Agreement Details */}
-            <div className="p-8 space-y-8">
+            <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
               {/* Lease Summary Cards */}
               <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <Calendar size={24} className="text-emerald-600" />
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
+                  <Calendar size={20} className="text-emerald-600 sm:w-6 sm:h-6" />
                   Lease Information
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 border-2 border-emerald-100">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-md">
-                        <Calendar size={28} className="text-emerald-600" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                  <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-4 sm:p-6 border-2 border-emerald-100">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-xl flex items-center justify-center shadow-md">
+                        <Calendar size={24} className="text-emerald-600 sm:w-7 sm:h-7" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-emerald-700 mb-1">Lease Period</p>
-                        <p className="text-lg font-bold text-gray-900">
+                        <p className="text-xs sm:text-sm font-medium text-emerald-700 mb-1">Lease Period</p>
+                        <p className="text-base sm:text-lg font-bold text-gray-900">
                           {formatDate(agreement.lease.startDate)}
                         </p>
-                        <p className="text-sm text-gray-600">to {formatDate(agreement.lease.endDate)}</p>
+                        <p className="text-xs sm:text-sm text-gray-600">to {formatDate(agreement.lease.endDate)}</p>
                       </div>
                     </div>
                   </div>
-                  <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-2xl p-6 border-2 border-teal-100">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-md">
-                        <Home size={28} className="text-teal-600" />
+                  <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-2xl p-4 sm:p-6 border-2 border-teal-100">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-xl flex items-center justify-center shadow-md">
+                        <Home size={24} className="text-teal-600 sm:w-7 sm:h-7" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-teal-700 mb-1">Monthly Rent</p>
-                        <p className="text-3xl font-bold text-teal-600">
+                        <p className="text-xs sm:text-sm font-medium text-teal-700 mb-1">Monthly Rent</p>
+                        <p className="text-2xl sm:text-3xl font-bold text-teal-600">
                           RM {Number(agreement.lease.rentAmount).toLocaleString()}
                         </p>
                       </div>
@@ -411,12 +411,12 @@ export default function AgreementSigningPage() {
               </div>
 
               {/* Signing Parties - Modern Design */}
-              <div className="border-t-2 border-gray-100 pt-8">
-                <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                  <User size={24} className="text-emerald-600" />
+              <div className="border-t-2 border-gray-100 pt-6 sm:pt-8">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
+                  <User size={20} className="text-emerald-600 sm:w-6 sm:h-6" />
                   Signing Parties
                 </h3>
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {/* Landlord Card */}
                   <div className={`relative overflow-hidden rounded-2xl border-2 transition-all ${
                     agreement.landlordSigned
@@ -424,38 +424,38 @@ export default function AgreementSigningPage() {
                       : 'border-gray-200 bg-white hover:border-emerald-200 hover:shadow-md'
                   }`}>
                     {agreement.landlordSigned && (
-                      <div className="absolute top-0 right-0 bg-emerald-500 text-white px-4 py-1 rounded-bl-2xl font-semibold text-sm flex items-center gap-1">
-                        <CheckCircle size={14} />
+                      <div className="absolute top-0 right-0 bg-emerald-500 text-white px-3 py-0.5 sm:px-4 sm:py-1 rounded-bl-2xl font-semibold text-xs sm:text-sm flex items-center gap-1">
+                        <CheckCircle size={12} className="sm:w-[14px] sm:h-[14px]" />
                         Signed
                       </div>
                     )}
-                    <div className="flex items-center justify-between p-6">
-                      <div className="flex items-center gap-4">
-                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg ${
+                    <div className="flex items-center justify-between p-4 sm:p-6 gap-3">
+                      <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                        <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center text-white text-lg sm:text-2xl font-bold shadow-lg flex-shrink-0 ${
                           agreement.landlordSigned ? 'bg-gradient-to-br from-emerald-500 to-teal-500' : 'bg-gradient-to-br from-gray-400 to-gray-500'
                         }`}>
                           {agreement.lease.landlord.name.charAt(0).toUpperCase()}
                         </div>
-                        <div>
-                          <div className="inline-block px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full mb-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="inline-block px-2 py-0.5 sm:px-3 sm:py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full mb-1 sm:mb-2">
                             LANDLORD
                           </div>
-                          <p className="text-lg font-bold text-gray-900">{agreement.lease.landlord.name}</p>
-                          <p className="text-sm text-gray-500">{agreement.lease.landlord.email}</p>
+                          <p className="text-base sm:text-lg font-bold text-gray-900 truncate">{agreement.lease.landlord.name}</p>
+                          <p className="text-xs sm:text-sm text-gray-500 truncate">{agreement.lease.landlord.email}</p>
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right flex-shrink-0">
                         {agreement.landlordSigned ? (
-                          <div className="space-y-1">
-                            <div className="text-sm font-semibold text-emerald-700">Signature Confirmed</div>
+                          <div className="space-y-0.5 sm:space-y-1">
+                            <div className="text-xs sm:text-sm font-semibold text-emerald-700">Signed</div>
                             {agreement.landlordSignedAt && (
-                              <p className="text-xs text-gray-500">{formatDateTime(agreement.landlordSignedAt)}</p>
+                              <p className="text-[10px] sm:text-xs text-gray-500">{formatDateTime(agreement.landlordSignedAt)}</p>
                             )}
                           </div>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-4 py-2 bg-amber-100 text-amber-700 font-semibold rounded-full">
-                            <Clock size={16} />
-                            Awaiting Signature
+                          <span className="inline-flex items-center gap-1 px-2 py-1 sm:px-4 sm:py-2 bg-amber-100 text-amber-700 font-semibold rounded-full text-xs sm:text-sm">
+                            <Clock size={14} className="sm:w-4 sm:h-4" />
+                            <span className="hidden sm:inline">Awaiting</span>
                           </span>
                         )}
                       </div>
@@ -469,38 +469,38 @@ export default function AgreementSigningPage() {
                       : 'border-gray-200 bg-white hover:border-emerald-200 hover:shadow-md'
                   }`}>
                     {agreement.tenantSigned && (
-                      <div className="absolute top-0 right-0 bg-emerald-500 text-white px-4 py-1 rounded-bl-2xl font-semibold text-sm flex items-center gap-1">
-                        <CheckCircle size={14} />
+                      <div className="absolute top-0 right-0 bg-emerald-500 text-white px-3 py-0.5 sm:px-4 sm:py-1 rounded-bl-2xl font-semibold text-xs sm:text-sm flex items-center gap-1">
+                        <CheckCircle size={12} className="sm:w-[14px] sm:h-[14px]" />
                         Signed
                       </div>
                     )}
-                    <div className="flex items-center justify-between p-6">
-                      <div className="flex items-center gap-4">
-                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg ${
+                    <div className="flex items-center justify-between p-4 sm:p-6 gap-3">
+                      <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                        <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center text-white text-lg sm:text-2xl font-bold shadow-lg flex-shrink-0 ${
                           agreement.tenantSigned ? 'bg-gradient-to-br from-emerald-500 to-teal-500' : 'bg-gradient-to-br from-gray-400 to-gray-500'
                         }`}>
                           {agreement.lease.tenant.name.charAt(0).toUpperCase()}
                         </div>
-                        <div>
-                          <div className="inline-block px-3 py-1 bg-cyan-100 text-cyan-700 text-xs font-bold rounded-full mb-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="inline-block px-2 py-0.5 sm:px-3 sm:py-1 bg-cyan-100 text-cyan-700 text-xs font-bold rounded-full mb-1 sm:mb-2">
                             TENANT
                           </div>
-                          <p className="text-lg font-bold text-gray-900">{agreement.lease.tenant.name}</p>
-                          <p className="text-sm text-gray-500">{agreement.lease.tenant.email}</p>
+                          <p className="text-base sm:text-lg font-bold text-gray-900 truncate">{agreement.lease.tenant.name}</p>
+                          <p className="text-xs sm:text-sm text-gray-500 truncate">{agreement.lease.tenant.email}</p>
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right flex-shrink-0">
                         {agreement.tenantSigned ? (
-                          <div className="space-y-1">
-                            <div className="text-sm font-semibold text-emerald-700">Signature Confirmed</div>
+                          <div className="space-y-0.5 sm:space-y-1">
+                            <div className="text-xs sm:text-sm font-semibold text-emerald-700">Signed</div>
                             {agreement.tenantSignedAt && (
-                              <p className="text-xs text-gray-500">{formatDateTime(agreement.tenantSignedAt)}</p>
+                              <p className="text-[10px] sm:text-xs text-gray-500">{formatDateTime(agreement.tenantSignedAt)}</p>
                             )}
                           </div>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-4 py-2 bg-amber-100 text-amber-700 font-semibold rounded-full">
-                            <Clock size={16} />
-                            {agreement.landlordSigned ? 'Awaiting Signature' : 'Waiting for Landlord'}
+                          <span className="inline-flex items-center gap-1 px-2 py-1 sm:px-4 sm:py-2 bg-amber-100 text-amber-700 font-semibold rounded-full text-xs sm:text-sm">
+                            <Clock size={14} className="sm:w-4 sm:h-4" />
+                            <span className="hidden sm:inline">{agreement.landlordSigned ? 'Awaiting' : 'Waiting'}</span>
                           </span>
                         )}
                       </div>
@@ -538,38 +538,38 @@ export default function AgreementSigningPage() {
 
               {/* Signature Section - Enhanced */}
               {canSign && !signSuccess && (
-                <div className="border-t-2 border-gray-100 pt-8">
-                  <div className="bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 rounded-3xl p-8 border-2 border-emerald-200">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
-                        <Pen size={24} className="text-white" />
+                <div className="border-t-2 border-gray-100 pt-6 sm:pt-8">
+                  <div className="bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 rounded-3xl p-4 sm:p-6 lg:p-8 border-2 border-emerald-200">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
+                        <Pen size={20} className="text-white sm:w-6 sm:h-6" />
                       </div>
                       <div>
-                        <h3 className="text-2xl font-bold text-gray-900">Your Digital Signature</h3>
-                        <p className="text-emerald-700">
+                        <h3 className="text-xl sm:text-2xl font-bold text-gray-900">Your Digital Signature</h3>
+                        <p className="text-emerald-700 text-sm sm:text-base">
                           Signing as <span className="font-bold">{userRole === 'landlord' ? 'Landlord' : 'Tenant'}</span>
                         </p>
                       </div>
                     </div>
 
-                    <div className="bg-white rounded-2xl p-6 mb-6 border-2 border-gray-200 shadow-inner">
+                    <div className="bg-white rounded-2xl p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6 border-2 border-gray-200 shadow-inner overflow-x-auto">
                       <SignaturePad
                         onSignatureChange={setSignature}
-                        width={600}
-                        height={250}
+                        width={Math.min(600, typeof window !== 'undefined' ? window.innerWidth - 80 : 600)}
+                        height={200}
                       />
                     </div>
 
-                    <label className="flex items-start gap-4 mb-8 cursor-pointer group">
+                    <label className="flex items-start gap-3 sm:gap-4 mb-6 sm:mb-8 cursor-pointer group">
                       <input
                         type="checkbox"
                         checked={confirmed}
                         onChange={(e) => setConfirmed(e.target.checked)}
-                        className="w-6 h-6 mt-1 rounded-lg border-2 border-emerald-300 text-emerald-600 focus:ring-emerald-500 focus:ring-offset-2 cursor-pointer"
+                        className="w-5 h-5 sm:w-6 sm:h-6 mt-0.5 sm:mt-1 rounded-lg border-2 border-emerald-300 text-emerald-600 focus:ring-emerald-500 focus:ring-offset-2 cursor-pointer flex-shrink-0"
                       />
-                      <span className="text-gray-700 leading-relaxed flex-1">
+                      <span className="text-gray-700 leading-relaxed flex-1 text-sm sm:text-base">
                         <span className="font-semibold text-gray-900">I confirm that:</span>
-                        <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+                        <ul className="list-disc list-inside mt-2 space-y-1 text-xs sm:text-sm">
                           <li>I have read and agree to all terms and conditions in this rental agreement</li>
                           <li>I understand that this digital signature is legally binding</li>
                           <li>The information provided is accurate and complete</li>
@@ -580,16 +580,16 @@ export default function AgreementSigningPage() {
                     <button
                       onClick={handleSign}
                       disabled={!signature || !confirmed || signing}
-                      className="w-full py-5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-lg font-bold rounded-2xl hover:from-emerald-700 hover:to-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl hover:shadow-2xl hover:scale-[1.02] disabled:hover:scale-100"
+                      className="w-full py-4 sm:py-5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-base sm:text-lg font-bold rounded-2xl hover:from-emerald-700 hover:to-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl hover:shadow-2xl hover:scale-[1.02] disabled:hover:scale-100"
                     >
                       {signing ? (
-                        <span className="flex items-center justify-center gap-3">
-                          <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span className="flex items-center justify-center gap-2 sm:gap-3">
+                          <div className="w-5 h-5 sm:w-6 sm:h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
                           Processing Signature...
                         </span>
                       ) : (
-                        <span className="flex items-center justify-center gap-3">
-                          <FileSignature size={24} />
+                        <span className="flex items-center justify-center gap-2 sm:gap-3">
+                          <FileSignature size={20} className="sm:w-6 sm:h-6" />
                           Sign Agreement as {userRole === 'landlord' ? 'Landlord' : 'Tenant'}
                         </span>
                       )}
@@ -654,23 +654,23 @@ export default function AgreementSigningPage() {
 
               {/* Cancel Agreement */}
               {userRole === 'landlord' && agreement.status !== 'COMPLETED' && agreement.status !== 'CANCELLED' && (
-                <div className="border-t-2 border-gray-100 pt-8">
-                  <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-6">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                          <XCircle size={24} className="text-red-600" />
+                <div className="border-t-2 border-gray-100 pt-6 sm:pt-8">
+                  <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                      <div className="flex items-start gap-3 sm:gap-4 flex-1">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                          <XCircle size={20} className="text-red-600 sm:w-6 sm:h-6" />
                         </div>
                         <div>
-                          <h4 className="text-lg font-bold text-red-900 mb-1">Cancel Agreement</h4>
-                          <p className="text-sm text-red-700">This action is permanent and cannot be undone. The agreement will be marked as cancelled.</p>
+                          <h4 className="text-base sm:text-lg font-bold text-red-900 mb-1">Cancel Agreement</h4>
+                          <p className="text-xs sm:text-sm text-red-700">This action is permanent and cannot be undone. The agreement will be marked as cancelled.</p>
                         </div>
                       </div>
                       <button
                         onClick={() => setShowCancelModal(true)}
-                        className="px-5 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-all flex items-center gap-2 whitespace-nowrap shadow-lg hover:shadow-xl"
+                        className="w-full sm:w-auto px-4 py-2.5 sm:px-5 sm:py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl text-sm sm:text-base"
                       >
-                        <XCircle size={20} />
+                        <XCircle size={18} className="sm:w-5 sm:h-5" />
                         Cancel
                       </button>
                     </div>
