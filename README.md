@@ -13,6 +13,16 @@
 **Frontend:** [https://rentverse-frontend-one.vercel.app/]  
 **Backend API:** [(https://uitm-devops-challenge-labuboys.onrender.com/)]
 
+Open the deployment link on a mobile phone browser to install the Progressive Web App (PWA) and add it to your home screen.
+
+---
+
+Team Members
+
+1. Alif Hezreel Bin Jaldeen (2024779455)
+2. Asad Ismet Badjened (2024554331)
+3. Syafiq Aiman Bin S. Shamsuddin (2024927491)
+
 ---
 
 ## 📋 Table of Contents
