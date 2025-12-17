@@ -12,9 +12,8 @@
 
 ## 🚀 Live Deployment
 
-**Frontend:** [YOUR_DEPLOYMENT_LINK_HERE]  
-**Backend API:** [YOUR_API_LINK_HERE]  
-**Admin Dashboard:** [YOUR_ADMIN_DASHBOARD_LINK]
+**Frontend:** [https://rentverse-frontend-one.vercel.app/]  
+**Backend API:** [https://rentverse-backend-98l4.onrender.com/]
 
 ---
 
