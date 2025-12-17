@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "rentverse/main.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "rentverse/main.py"
+    }
+  ],
+  "env": {
+    "PYTHON_VERSION": "3.12"
+  },
+  "regions": ["sin1"]
+}

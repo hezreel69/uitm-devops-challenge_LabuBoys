@@ -1,0 +1,13 @@
+notebooks
+*.ipynb
+*.csv
+*.png
+__pycache__
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.log
+.DS_Store
+debug_*.py
+test_*.py
