@@ -25,12 +25,23 @@ const manrope = Manrope({
 })
 
 export const metadata: Metadata = {
-  title: 'Rentverse',
-  description: 'Your rental platform',
+  title: 'RentVerse - Property Rental Platform',
+  description: 'Modern, secure, and intelligent property rental platform with advanced security and digital agreement signing',
+  manifest: '/manifest.json',
   viewport: {
     width: 'device-width',
     initialScale: 1,
     viewportFit: 'cover',
+  },
+  themeColor: '#0d9488',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'RentVerse',
+  },
+  icons: {
+    icon: '/icons/icon-192x192.png',
+    apple: '/icons/icon-192x192.png',
   },
 }
 
@@ -41,6 +52,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={clsx([poly.className, manrope.className])}>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#0d9488" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+      </head>
       <body>
         <RateLimitProvider>
           <AuthInitializer />
