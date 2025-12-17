@@ -1,9 +1,7 @@
 # 🏠 RentVerse - Intelligent Property Rental Platform
 
-[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen)](YOUR_DEPLOYMENT_LINK_HERE)
-[![Backend](https://img.shields.io/badge/Backend-Node.js%20%7C%20Express-green)](https://github.com/)
-[![Frontend](https://img.shields.io/badge/Frontend-Next.js%2014-blue)](https://github.com/)
-[![Database](https://img.shields.io/badge/Database-PostgreSQL-blue)](https://github.com/)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen)](https://rentverse-frontend-one.vercel.app/)
+[![Backend](https://img.shields.io/badge/Backend-Node.js%20%7C%20Express-green)](https://uitm-devops-challenge-labuboys.onrender.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 > **RentVerse** is a modern, secure, and intelligent property rental platform featuring advanced security mechanisms, digital agreement signing, real-time risk monitoring, and smart notifications.
@@ -13,7 +11,7 @@
 ## 🚀 Live Deployment
 
 **Frontend:** [https://rentverse-frontend-one.vercel.app/]  
-**Backend API:** [https://rentverse-backend-98l4.onrender.com/]
+**Backend API:** [(https://uitm-devops-challenge-labuboys.onrender.com/)]
 
 ---
 
